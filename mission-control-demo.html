@@ -1,0 +1,3032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panasa Modernisation Cockpit — Demo Bank Core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e0c;
+    --bg-2: #0f1513;
+    --bg-3: #141b18;
+    --bg-4: #1a2320;
+    --panel: #11181590;
+    --line: #1f2a25;
+    --line-2: #2a3a33;
+    --line-3: #3a4a43;
+    --ink: #e8efe9;
+    --ink-2: #a8b5ad;
+    --ink-3: #6e7e74;
+    --ink-4: #4a5a51;
+    --green: #063622;
+    --green-2: #0b5a3a;
+    --green-glow: #15c277;
+    --green-soft: rgba(21, 194, 119, 0.12);
+    --green-line: rgba(21, 194, 119, 0.3);
+    --mint: #ddf8e7;
+    --peach: #f5b5a0;
+    --peach-2: #ff9276;
+    --peach-soft: rgba(245, 181, 160, 0.12);
+    --peach-line: rgba(245, 181, 160, 0.35);
+    --amber: #f5c97a;
+    --red: #ff6b5e;
+    --purple: #c084fc;
+    --blue: #5dd0ff;
+    --code-bg: #0c1411;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 800px 400px at 20% 0%, rgba(11, 90, 58, 0.08), transparent 60%),
+      radial-gradient(ellipse 600px 300px at 100% 100%, rgba(245, 181, 160, 0.04), transparent 60%);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .serif { font-family: 'Instrument Serif', serif; font-style: italic; }
+
+  /* ============ APP SHELL ============ */
+  .app {
+    display: grid;
+    grid-template-rows: 56px 36px 1fr 96px 48px;
+    height: 100vh;
+    min-height: 700px;
+  }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    gap: 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 13px;
+  }
+  .brand-dot {
+    width: 8px; height: 8px;
+    background: var(--green-glow);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--green-glow);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .brand .slash { color: var(--ink-3); font-weight: 400; }
+
+  .target {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    height: 56px;
+    margin-left: 14px;
+  }
+  .target-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .target-name { font-weight: 600; font-size: 13px; }
+  .target-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .target-flow .from { color: var(--peach); }
+  .target-flow .arrow { color: var(--ink-3); }
+  .target-flow .to { color: var(--green-glow); }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    padding-left: 4px;
+    margin-left: auto;
+  }
+  .timeline-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .timeline-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .timeline-value .em { color: var(--green-glow); font-weight: 600; }
+  .timeline-value .dim { color: var(--ink-3); }
+  .timeline-value .strike { color: var(--peach); text-decoration: line-through; opacity: 0.7; }
+
+  .session {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 18px;
+    border-left: 1px solid var(--line);
+    height: 56px;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .session .id { font-family: 'JetBrains Mono', monospace; color: var(--ink-2); }
+  .session .live-dot { color: var(--green-glow); font-size: 8px; }
+
+  /* ============ SUB NAV ============ */
+  .subnav {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--line);
+    gap: 4px;
+  }
+  .nav-item {
+    padding: 0 14px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-3);
+    cursor: default;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-weight: 500;
+  }
+  .nav-item.active {
+    color: var(--green-glow);
+    border-bottom-color: var(--green-glow);
+  }
+  .nav-item:not(.active):hover { color: var(--ink-2); }
+  .nav-spacer { flex: 1; }
+  .nav-stats {
+    display: flex;
+    gap: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .nav-stat { letter-spacing: 0.08em; }
+  .nav-stat .num { color: var(--ink); font-weight: 600; margin-left: 4px; }
+  .nav-stat .num.peach { color: var(--peach); }
+
+  /* ============ MAIN GRID ============ */
+  .main {
+    display: grid;
+    grid-template-columns: 250px 1fr 330px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ============ PIPELINE RAIL ============ */
+  .rail {
+    background: var(--bg-2);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+  .rail-title {
+    padding: 0 20px 14px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rail-title .count {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-2);
+    letter-spacing: 0;
+  }
+  .stages { position: relative; }
+  .stages::before {
+    content: '';
+    position: absolute;
+    left: 33px;
+    top: 22px;
+    bottom: 22px;
+    width: 1px;
+    background: var(--line);
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    padding: 9px 20px;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .stage:hover { background: rgba(255,255,255,0.015); }
+  .stage-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s ease;
+  }
+  .stage-body { padding-top: 2px; }
+  .stage-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    letter-spacing: -0.005em;
+    transition: color 0.3s ease;
+    line-height: 1.25;
+  }
+  .stage-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 11.5px;
+    color: var(--ink-4);
+    margin-top: 1px;
+    line-height: 1.3;
+  }
+  .stage-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-3);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  .stage.done .stage-num {
+    background: var(--green-2);
+    border-color: var(--green-2);
+    color: var(--mint);
+  }
+  .stage.done .stage-num::after {
+    content: '✓';
+    font-size: 12px;
+  }
+  .stage.done .stage-num .num-text { display: none; }
+  .stage.done .stage-name { color: var(--ink); }
+  .stage.done .stage-sub { color: var(--ink-3); }
+  .stage.done .stage-meta { color: var(--green-glow); }
+  .stage.active .stage-num {
+    background: var(--bg);
+    border-color: var(--green-glow);
+    color: var(--green-glow);
+    box-shadow: 0 0 0 4px rgba(21, 194, 119, 0.12);
+  }
+  .stage.active .stage-name { color: var(--ink); font-weight: 600; }
+  .stage.active .stage-sub { color: var(--ink-2); }
+  .stage.active .stage-meta { color: var(--green-glow); }
+  .stage.checkpoint .stage-num {
+    background: var(--bg);
+    border-color: var(--peach);
+    color: var(--peach);
+    box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.18);
+    animation: checkpoint-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes checkpoint-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.15); }
+    50% { box-shadow: 0 0 0 8px rgba(245, 181, 160, 0.25); }
+  }
+  .stage.checkpoint .stage-name { color: var(--peach); font-weight: 600; }
+  .stage.checkpoint .stage-sub { color: var(--peach); }
+  .stage.checkpoint .stage-meta { color: var(--peach); }
+
+  /* ============ CANVAS ============ */
+  .canvas {
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+  }
+  .canvas-header {
+    padding: 18px 28px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .canvas-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .canvas-title .accent { color: var(--green-glow); }
+  .canvas-title.peach .accent { color: var(--peach); }
+  .canvas-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .canvas-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 28px;
+  }
+
+  /* ============ AGENT BLOCK ============ */
+  .agent-block {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .agent-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .agent-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    border: 1px solid var(--green-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green-glow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .agent-icon.peach { background: var(--peach-soft); border-color: var(--peach); color: var(--peach); }
+  .agent-name { font-size: 13px; font-weight: 600; }
+  .agent-name .label { color: var(--ink-3); font-weight: 400; font-size: 11px; margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
+  .agent-status {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .agent-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .agent-status.done { color: var(--ink-3); }
+  .agent-status.done .dot { background: var(--ink-3); animation: none; box-shadow: none; }
+
+  .todo-list { display: flex; flex-direction: column; gap: 4px; }
+  .todo-item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .todo-check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: transparent;
+    background: transparent;
+  }
+  .todo-item.done .todo-check {
+    background: var(--green-glow);
+    border-color: var(--green-glow);
+    color: var(--bg);
+  }
+  .todo-item.done .todo-check::after { content: '✓'; }
+  .todo-text { font-size: 12px; color: var(--ink-2); }
+  .todo-item.done .todo-text { color: var(--ink); }
+  .todo-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  @keyframes line-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ METRICS ============ */
+  .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .panel-row.triple { grid-template-columns: repeat(3, 1fr); }
+  .panel-row.quad { grid-template-columns: repeat(4, 1fr); }
+  .metric {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 13px 15px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .metric-value.green { color: var(--green-glow); }
+  .metric-value.peach { color: var(--peach); }
+  .metric-value.amber { color: var(--amber); }
+  .metric-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title .hint {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-4);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  /* ============ RELATIONSHIP DIAGRAM ============ */
+  .relgraph {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    min-height: 480px;
+  }
+  .relgraph svg {
+    width: 100%;
+    height: 480px;
+    display: block;
+  }
+  .relgraph-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    display: flex;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .relgraph-legend .lg { display: flex; align-items: center; gap: 6px; }
+  .relgraph-legend .sw { width: 8px; height: 8px; border-radius: 2px; }
+
+  .rg-node { cursor: pointer; transition: filter 0.2s ease; }
+  .rg-node:hover { filter: brightness(1.3); }
+  .rg-node.selected rect { stroke: var(--green-glow); stroke-width: 2; }
+  .rg-node rect { transition: all 0.2s ease; }
+  .rg-node-label {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-node-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-edge { stroke: var(--line-3); stroke-width: 1; fill: none; transition: stroke 0.2s ease; }
+  .rg-edge.highlight { stroke: var(--green-glow); stroke-width: 1.5; }
+  .rg-edge-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    fill: var(--ink-4);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  /* Inspector panel for selected node */
+  .inspector {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .inspector-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .inspector-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .inspector-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    background: var(--green-soft);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid var(--green-line);
+  }
+  .inspector-desc {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-2);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .inspector-section { margin-top: 12px; }
+  .inspector-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .evidence-list { display: flex; flex-direction: column; gap: 6px; }
+  .evidence-item {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .evidence-icon {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .evidence-icon.cbl { background: rgba(192,132,252,0.15); color: var(--purple); }
+  .evidence-icon.cpy { background: rgba(245,181,160,0.15); color: var(--peach); }
+  .evidence-icon.sql { background: rgba(245,201,122,0.15); color: var(--amber); }
+  .evidence-icon.jcl { background: rgba(93,208,255,0.15); color: var(--blue); }
+  .evidence-icon.doc { background: rgba(21,194,119,0.15); color: var(--green-glow); }
+  .evidence-path { color: var(--ink-2); }
+  .evidence-path .lines { color: var(--green-glow); }
+  .evidence-snippet { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+
+  .inspector-props {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .inspector-prop { display: flex; flex-direction: column; gap: 2px; }
+  .inspector-prop .k {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+  .inspector-prop .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  /* ============ DIFF / CODEGEN ============ */
+  .diff-panel {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .diff-header {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  .diff-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diff-tab.before { border-right: 1px solid var(--line); color: var(--peach); }
+  .diff-tab.after { color: var(--green-glow); }
+  .diff-tab .label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .diff-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-height: 360px;
+  }
+  .diff-side {
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow: auto;
+  }
+  .diff-side.before { border-right: 1px solid var(--line); }
+  .diff-side .k  { color: #c084fc; }
+  .diff-side .s  { color: #f5c97a; }
+  .diff-side .c  { color: var(--ink-3); font-style: italic; }
+  .diff-side .n  { color: #ff9276; }
+  .diff-side .t  { color: var(--blue); }
+  .diff-side .an { color: var(--amber); }
+  .diff-side .fn { color: var(--blue); }
+
+  .typing-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 13px;
+    background: var(--green-glow);
+    vertical-align: text-bottom;
+    margin-left: 1px;
+    animation: cursor-blink 1s steps(2) infinite;
+  }
+  @keyframes cursor-blink { 50% { opacity: 0; } }
+
+  /* Provenance trail in code-gen */
+  .provenance {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .provenance .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    padding-right: 12px;
+    border-right: 1px solid var(--line);
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .provenance .crumb { color: var(--ink-2); }
+  .provenance .crumb.green { color: var(--green-glow); }
+  .provenance .crumb.peach { color: var(--peach); }
+  .provenance .sep { color: var(--ink-4); }
+
+  /* ============ SELF REVIEW ============ */
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    padding: 9px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+    gap: 12px;
+  }
+  .check-item .icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .check-item.pass .icon { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .check-item.warn .icon { background: rgba(245, 181, 160, 0.15); color: var(--peach); }
+  .check-item .label { font-size: 12px; color: var(--ink); }
+  .check-item.warn .label { color: var(--ink); }
+  .check-item .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .check-item.warn .meta { color: var(--peach); }
+
+  /* Checkpoint card */
+  .checkpoint-card {
+    background: linear-gradient(135deg, rgba(245, 181, 160, 0.10), rgba(245, 181, 160, 0.02));
+    border: 1px solid var(--peach);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .checkpoint-eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--peach);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .checkpoint-title {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .checkpoint-body {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 640px;
+  }
+  .checkpoint-body .em-line {
+    display: block;
+    margin-top: 8px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--peach);
+  }
+  .checkpoint-flags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .flag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--peach);
+    color: var(--peach);
+    border-radius: 100px;
+    background: rgba(245, 181, 160, 0.05);
+  }
+  .checkpoint-reviewer {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(245, 181, 160, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .reviewer-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--peach), var(--peach-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg);
+  }
+  .reviewer-name { font-weight: 600; color: var(--ink); font-size: 12px; }
+  .reviewer-role { color: var(--ink-3); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TEST DOT GRID ============ */
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 3px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .test-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--line);
+    opacity: 0;
+    animation: cell-in 0.05s forwards;
+  }
+  .test-cell.pass { background: var(--green-glow); }
+  .test-cell.flake { background: var(--amber); }
+  .test-cell.fail { background: var(--red); }
+  @keyframes cell-in { to { opacity: 1; } }
+
+  /* ============ TERMINAL ============ */
+  .terminal {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  .terminal-line { color: var(--ink-2); white-space: pre-wrap; opacity: 0; animation: line-in 0.4s forwards; }
+  .terminal-line .ts { color: var(--ink-3); }
+  .terminal-line .ok { color: var(--green-glow); }
+  .terminal-line .warn { color: var(--amber); }
+  .terminal-line .err { color: var(--red); }
+  .terminal-line .arrow { color: var(--ink-3); }
+  .terminal-line .file { color: var(--peach); }
+
+  /* ============ PR CARDS ============ */
+  .pr-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .pr-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green-glow);
+    font-weight: 600;
+  }
+  .pr-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .pr-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+  .pr-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: rgba(21, 194, 119, 0.1);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid var(--green-line);
+    white-space: nowrap;
+  }
+
+  /* ============ PLAN TREE ============ */
+  .plan-tree { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; }
+  .plan-phase {
+    display: grid;
+    grid-template-columns: 32px 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .plan-phase:nth-child(odd) { background: rgba(255,255,255,0.015); }
+  .plan-phase .bullet { color: var(--green-glow); font-weight: 600; }
+  .plan-phase .desc { color: var(--ink); }
+  .plan-phase .risk {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Inter Tight', sans-serif;
+    font-weight: 600;
+  }
+  .plan-phase .risk.high { background: rgba(255,107,94,0.1); color: var(--red); }
+  .plan-phase .risk.med  { background: rgba(245,201,122,0.1); color: var(--amber); }
+  .plan-phase .risk.low  { background: rgba(21,194,119,0.1); color: var(--green-glow); }
+  .plan-phase .dur { color: var(--ink-3); font-size: 11px; }
+
+  /* Architecture diagram for planning */
+  .arch-canvas {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 22px;
+    margin-bottom: 16px;
+    min-height: 200px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .arch-box {
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 130px;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: box-pop 0.4s ease forwards;
+  }
+  @keyframes box-pop { to { opacity: 1; transform: scale(1); } }
+  .arch-box .ttl { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .arch-box .tag {
+    font-size: 9px;
+    color: var(--ink-3);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .arch-box.svc { border-color: var(--green-glow); box-shadow: 0 0 14px rgba(21, 194, 119, 0.18); }
+  .arch-box.svc .tag { color: var(--green-glow); }
+  .arch-arrow { color: var(--ink-4); font-size: 14px; opacity: 0; animation: line-in 0.3s 0.6s forwards; }
+  .arch-gap { height: 18px; }
+
+  /* Discovery file tree */
+  .discovery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 16px;
+  }
+  .file-tree {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    min-height: 220px;
+  }
+  .file-tree-head {
+    color: var(--ink-3);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .tree-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    color: var(--ink-2);
+    opacity: 0;
+    animation: line-in 0.3s forwards;
+  }
+  .tree-line.folder { color: var(--ink); }
+  .tree-line.file   { color: var(--ink-2); padding-left: 16px; }
+  .tree-line .ic    { color: var(--green-glow); }
+  .tree-line .meta  { margin-left: auto; color: var(--ink-4); font-size: 10px; }
+
+  .complexity-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 10px;
+    background: var(--bg-3);
+  }
+  .complexity-bar > div { transition: width 0.8s ease; }
+  .complexity-bar .high { background: var(--red); }
+  .complexity-bar .med  { background: var(--amber); }
+  .complexity-bar .low  { background: var(--green-glow); }
+  .complexity-legend {
+    display: flex;
+    gap: 14px;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .complexity-legend .swatch {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* ============ EMPTY / IDLE PROMPTS ============ */
+  .idle-prompt {
+    padding: 60px 24px 24px;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .idle-prompt .arrow {
+    display: inline-block;
+    margin: 0 4px;
+    color: var(--green-glow);
+    font-family: 'Inter Tight', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .idle-prompt-sub {
+    margin-top: 12px;
+    font-family: 'Inter Tight', sans-serif;
+    font-style: normal;
+    font-size: 12px;
+    color: var(--ink-4);
+  }
+
+  /* ============ RIGHT COLUMN ============ */
+  .right-col {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    border-left: 1px solid var(--line);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .gov-panel {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .gov-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .gov-title .live {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green-glow);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .gov-title .live .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .gov-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+  }
+  .gov-row:last-child { border-bottom: none; }
+  .gov-row .l { color: var(--ink-3); }
+  .gov-row .v { color: var(--ink); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .gov-row .v.green { color: var(--green-glow); }
+  .gov-row .v.peach { color: var(--peach); }
+  .gov-row .v.amber { color: var(--amber); }
+
+  .risk-section { margin-top: 12px; }
+  .risk-section-title {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 2px;
+  }
+  .risk-cell {
+    aspect-ratio: 1;
+    border-radius: 1px;
+    background: var(--bg-3);
+    transition: background 0.4s;
+  }
+  .risk-cell.green { background: var(--green-glow); opacity: 0.55; }
+  .risk-cell.active {
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  /* ============ ARTEFACTS SIDEBAR ============ */
+  .artefacts {
+    padding: 14px 18px 18px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .art-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .art-count { color: var(--green-glow); font-family: 'JetBrains Mono', monospace; }
+
+  .art-tabs {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 12px;
+    background: var(--bg-3);
+  }
+  .art-tab {
+    flex: 1;
+    padding: 5px 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+  .art-tab.active {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 0 0 1px var(--line-2);
+  }
+  .art-tab .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-3);
+    margin-left: 4px;
+  }
+
+  .art-list { display: flex; flex-direction: column; gap: 6px; }
+  .art-item {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 11px;
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: center;
+    opacity: 0;
+    animation: art-in 0.5s forwards;
+    cursor: default;
+    transition: all 0.15s ease;
+  }
+  .art-item:hover { border-color: var(--line-3); background: var(--bg-4); }
+  @keyframes art-in {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .art-icon {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .art-icon.pdf { background: rgba(245, 181, 160, 0.15); color: var(--peach); }
+  .art-icon.md { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .art-icon.json { background: rgba(245, 201, 122, 0.15); color: var(--amber); }
+  .art-icon.code { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+  .art-icon.html { background: rgba(93, 208, 255, 0.15); color: var(--blue); }
+  .art-name { font-size: 12px; font-weight: 500; color: var(--ink); }
+  .art-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+  .art-evidence-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--green-glow);
+    margin-top: 3px;
+  }
+  .art-evidence-count::before { content: '◆'; font-size: 8px; }
+  .art-empty {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--ink-4);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* ============ ACTIVITY LOG ============ */
+  .log {
+    background: #07090e;
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .log-head {
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+  .log-head .title {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .log-head .title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .log-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 24px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    min-height: 0;
+  }
+  .log-row {
+    display: grid;
+    grid-template-columns: 56px 128px 1fr;
+    gap: 12px;
+    color: var(--ink-2);
+    opacity: 0;
+    animation: row-in 0.25s forwards;
+  }
+  @keyframes row-in {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .log-row .ts { color: var(--ink-4); }
+  .log-row .src { color: var(--green-glow); }
+  .log-row .src.discovery     { color: var(--green-glow); }
+  .log-row .src.comprehension { color: var(--blue); }
+  .log-row .src.planning      { color: var(--purple); }
+  .log-row .src.codegen       { color: var(--green-glow); }
+  .log-row .src.review        { color: var(--peach); }
+  .log-row .src.testing       { color: var(--amber); }
+  .log-row .src.integration   { color: var(--green-glow); }
+  .log-row .src.system        { color: var(--ink-3); }
+  .log-row .msg { color: var(--ink); }
+  .log-row.success .msg { color: var(--green-glow); }
+  .log-row.warn    .msg { color: var(--peach); }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .progress-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.12em;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 100px;
+    overflow: hidden;
+    max-width: 320px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-2), var(--green-glow));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 8px var(--green-glow);
+    width: 0%;
+  }
+  .progress-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    min-width: 70px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter Tight', sans-serif;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary {
+    background: var(--green-glow);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #1ed889; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary.peach { background: var(--peach); }
+  .btn-primary.peach:hover { background: var(--peach-2); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--line-2);
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
+  .btn-kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 3px;
+    opacity: 0.75;
+    line-height: 1;
+  }
+  .btn-primary .btn-kbd { background: rgba(0,0,0,0.18); }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Panasa</span>
+      <span class="slash">/ Modernisation Cockpit</span>
+    </div>
+    <div class="target">
+      <div>
+        <div class="target-label">Engagement</div>
+        <div class="target-name">Demo Bank · Core Banking Modernisation</div>
+      </div>
+      <div class="target-flow">
+        <span class="from">COBOL / CICS Monolith</span>
+        <span class="arrow">──▶</span>
+        <span class="to">Java 21 · Spring Boot · AWS</span>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-label">Programme</div>
+      <div class="timeline-value">
+        <span id="day-counter" class="em">Day 6.2</span>
+        <span class="dim"> / 42 est. ·</span>
+        <span class="strike">manual: 540d</span>
+      </div>
+    </div>
+    <div class="session">
+      <span>Session</span>
+      <span class="id">PNS-7842</span>
+      <span class="live-dot">●</span>
+      <span>Live</span>
+    </div>
+  </header>
+
+  <!-- SUB NAV -->
+  <nav class="subnav">
+    <div class="nav-item active">Pipeline</div>
+    <div class="nav-item">Relationships</div>
+    <div class="nav-item">Artefacts</div>
+    <div class="nav-item">Agents</div>
+    <div class="nav-item">Evidence</div>
+    <div class="nav-item">Audit</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-stats">
+      <span class="nav-stat">AGENTS<span class="num"><span id="navAgentsActive">0</span> / 7</span></span>
+      <span class="nav-stat">NODES<span class="num" id="navNodes">0</span></span>
+      <span class="nav-stat">EDGES<span class="num" id="navEdges">0</span></span>
+      <span class="nav-stat">EVIDENCE<span class="num" id="navEvidence">0</span></span>
+      <span class="nav-stat">ARTEFACTS<span class="num peach" id="navArtefacts">0</span></span>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- LEFT RAIL -->
+    <aside class="rail">
+      <div class="rail-title"><span>Pipeline</span><span class="count" id="railCount">0 / 7</span></div>
+      <div class="stages" id="stages"></div>
+    </aside>
+
+    <!-- CANVAS -->
+    <section class="canvas">
+      <header class="canvas-header">
+        <h1 class="canvas-title" id="canvasTitle"></h1>
+        <span class="canvas-sub" id="canvasSub"></span>
+      </header>
+      <div class="canvas-body" id="canvasBody"></div>
+    </section>
+
+    <!-- RIGHT COLUMN -->
+    <aside class="right-col">
+      <section class="gov-panel">
+        <div class="gov-title"><span>Governance</span><span class="live"><span class="dot"></span>live</span></div>
+        <div class="gov-row"><span class="l">Modules complete</span><span class="v" id="gov-modules">47 / 240</span></div>
+        <div class="gov-row"><span class="l">Test coverage</span><span class="v" id="gov-coverage">—</span></div>
+        <div class="gov-row"><span class="l">Parity tests</span><span class="v" id="gov-parity">—</span></div>
+        <div class="gov-row"><span class="l">Human approvals</span><span class="v" id="gov-approvals">0 pending</span></div>
+        <div class="gov-row"><span class="l">Audit entries</span><span class="v" id="gov-audit">0</span></div>
+        <div class="risk-section">
+          <div class="risk-section-title">Module risk · 240 modules</div>
+          <div class="risk-grid" id="risk-grid"></div>
+        </div>
+      </section>
+
+      <section class="artefacts">
+        <div class="art-title"><span>Artefacts</span><span class="art-count" id="artCount">0</span></div>
+        <div class="art-tabs">
+          <div class="art-tab active" data-tab="all">All <span class="count" id="tabCountAll">0</span></div>
+          <div class="art-tab" data-tab="code">Code <span class="count" id="tabCountCode">0</span></div>
+          <div class="art-tab" data-tab="docs">Docs <span class="count" id="tabCountDocs">0</span></div>
+        </div>
+        <div class="art-list" id="artList">
+          <div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <section class="log">
+    <div class="log-head">
+      <span class="title"><span class="dot"></span>Activity Log · Real-time</span>
+      <span class="log-stats" id="log-stats">0 events</span>
+    </div>
+    <div class="log-body" id="log-body"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="progress-wrap">
+      <span class="progress-label">PROGRESS</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">Stage 1 / 7</span>
+    </div>
+    <button class="btn btn-ghost" id="resetBtn">
+      <span>Reset</span>
+      <span class="btn-kbd">R</span>
+    </button>
+    <button class="btn btn-primary" id="advanceBtn">
+      <span id="advanceLabel">Run Discovery</span>
+      <span class="btn-kbd">→</span>
+    </button>
+  </footer>
+
+</div>
+
+<script>
+/* =====================================================================
+   PANASA MODERNISATION COCKPIT — single-file demo
+   Click-to-advance · COBOL → Java migration of CUST_TXN_BATCH.cbl
+   ===================================================================== */
+
+const $ = id => document.getElementById(id);
+
+/* =====================================================================
+   RELATIONSHIP GRAPH DATA — heart of the Comprehension stage
+   ===================================================================== */
+const GRAPH = {
+  nodes: [
+    { id: 'project',  label: 'Demo Bank Core',         type: 'project',         x: 480, y: 30,  color: '#5dd0ff' },
+    { id: 'system',   label: 'Core Banking Platform',  type: 'system',          x: 480, y: 105, color: '#5dd0ff' },
+    { id: 'software', label: 'COBOL/CICS Monolith',    type: 'software',        x: 130, y: 195, color: '#c084fc' },
+    { id: 'jcl',      label: 'EOD Batch Chain',        type: 'jcl_job',         x: 480, y: 195, color: '#5dd0ff' },
+    { id: 'program',  label: 'CUST-TXN-BATCH',         type: 'cobol_program',   x: 830, y: 195, color: '#15c277' },
+    { id: 'copybook', label: 'TXNREC.CPY',             type: 'copybook',        x: 320, y: 285, color: '#c084fc' },
+    { id: 'paragraph',label: 'VALIDATE-AND-POST',      type: 'paragraph',       x: 640, y: 285, color: '#15c277' },
+    { id: 'process',  label: 'Settlement Flow',        type: 'process_flow',    x: 160, y: 365, color: '#f5c97a' },
+    { id: 'table',    label: 'GL_TXN',                 type: 'db2_table',       x: 480, y: 365, color: '#f5c97a' },
+    { id: 'sproc',    label: 'SP_POST_LEDGER',         type: 'stored_proc',     x: 800, y: 365, color: '#15c277' },
+    { id: 'feature',  label: 'Daily Posting',          type: 'feature',         x: 130, y: 445, color: '#f5b5a0' },
+    { id: 'story',    label: 'Treasury Batch Close',   type: 'user_story',      x: 320, y: 445, color: '#f5b5a0' },
+    { id: 'rule',     label: 'Cap $999,999.99',        type: 'business_rule',   x: 640, y: 445, color: '#f5b5a0' },
+  ],
+  edges: [
+    { from: 'project',  to: 'system',    label: 'has' },
+    { from: 'system',   to: 'software',  label: 'runs_on' },
+    { from: 'system',   to: 'jcl',       label: 'schedules' },
+    { from: 'jcl',      to: 'program',   label: 'invokes' },
+    { from: 'program',  to: 'copybook',  label: 'uses' },
+    { from: 'program',  to: 'paragraph', label: 'contains' },
+    { from: 'paragraph',to: 'sproc',     label: 'calls' },
+    { from: 'paragraph',to: 'table',     label: 'writes' },
+    { from: 'sproc',    to: 'table',     label: 'writes' },
+    { from: 'process',  to: 'program',   label: 'orchestrates' },
+    { from: 'software', to: 'feature',   label: 'implements' },
+    { from: 'feature',  to: 'story',     label: 'satisfies' },
+    { from: 'feature',  to: 'process',   label: 'realised_by' },
+    { from: 'rule',     to: 'paragraph', label: 'enforced_by' },
+    { from: 'rule',     to: 'table',     label: 'constrains' },
+  ]
+};
+
+const EVIDENCE = {
+  paragraph: {
+    title: 'VALIDATE-AND-POST',
+    type: 'COBOL Paragraph',
+    desc: 'Validates each transaction against the policy limit, then posts approved transactions to the general ledger via stored procedure. The hot path of the EOD batch.',
+    props: [
+      ['Visibility', 'internal'],
+      ['Calls', '2 procs · 1 paragraph'],
+      ['Side effects', 'DB write + audit'],
+      ['Exec count/day', '~4.2M'],
+    ],
+    evidence: [
+      { type: 'cbl', path: 'src/cbl/CUST_TXN_BATCH.cbl', lines: 'L141–178', snippet: 'IF TXN-AMOUNT > WS-MAX-AMOUNT' },
+      { type: 'cpy', path: 'src/cpy/TXNREC.CPY',         lines: 'L1–14',   snippet: '01  TXN-RECORD.' },
+      { type: 'sql', path: 'db/procs/SP_POST_LEDGER.sql',lines: 'L23–67',  snippet: 'CREATE PROCEDURE SP_POST_LEDGER' },
+      { type: 'doc', path: 'docs/ops/eod-runbook.md',    lines: '§ 4.2',   snippet: 'End-of-day posting procedure' },
+    ]
+  },
+  rule: {
+    title: 'Single-transaction cap $999,999.99',
+    type: 'Business Rule',
+    desc: 'No single customer transaction may exceed $999,999.99. Hardcoded in COBOL since 1997. Also enforced by a DB2 check constraint as defence-in-depth.',
+    props: [
+      ['Source', 'Reg D + Treasury'],
+      ['Enforced at', 'CBL + DB2'],
+      ['Override', 'Treasury manual'],
+      ['Last reviewed', 'Feb 2024'],
+    ],
+    evidence: [
+      { type: 'cbl', path: 'src/cbl/CUST_TXN_BATCH.cbl',      lines: 'L62',     snippet: 'WS-MAX-AMOUNT VALUE 999999.99.' },
+      { type: 'sql', path: 'db/schema/GL_TXN.ddl',            lines: 'L31',     snippet: 'CHECK (amount <= 999999.99)' },
+      { type: 'doc', path: 'docs/compliance/txn-limits.pdf',  lines: 'p.4',     snippet: 'Single-txn ceiling — retail' },
+    ]
+  },
+  table: {
+    title: 'GL_TXN (DB2 table)',
+    type: 'Database Table',
+    desc: 'General Ledger transaction record. Append-only, partitioned by business date. Backbone of the bank\'s entire posting history since the platform went live.',
+    props: [
+      ['Rows', '4.2B'],
+      ['PK', '(txn_id, biz_date)'],
+      ['Indexes', '11'],
+      ['Peak write', '320 txn/s'],
+    ],
+    evidence: [
+      { type: 'sql', path: 'db/schema/GL_TXN.ddl',             lines: 'L1–87',   snippet: 'CREATE TABLE GL_TXN' },
+      { type: 'sql', path: 'db/migrations/0142_audit_cols.sql',lines: 'L1–22',   snippet: 'ALTER TABLE GL_TXN ADD audit_id' },
+      { type: 'cbl', path: 'src/cbl/CUST_TXN_BATCH.cbl',       lines: 'L195–212',snippet: 'EXEC SQL INSERT INTO GL_TXN' },
+    ]
+  },
+  feature: {
+    title: 'Daily Transaction Posting',
+    type: 'Feature',
+    desc: 'Posts approved customer transactions to the general ledger at end of day. Runs as part of the overnight batch chain; must complete before 03:00 UTC.',
+    props: [
+      ['Status', 'Production since 1997'],
+      ['Owner', 'Core Banking squad'],
+      ['User stories', '4'],
+      ['Business rules', '8'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/features/daily-posting.md', lines: 'full doc', snippet: 'Daily Posting — feature spec' },
+      { type: 'jcl', path: 'jcl/EODBATCH.JCL',               lines: 'L1–42',    snippet: '//EODBATCH JOB (ACCT),CLASS=A' },
+      { type: 'cbl', path: 'src/cbl/CUST_TXN_BATCH.cbl',     lines: 'L1–248',   snippet: 'PROGRAM-ID. CUST-TXN-BATCH.' },
+    ]
+  },
+  story: {
+    title: 'Treasury Batch Close',
+    type: 'User Story',
+    desc: 'As a Treasury operator, I want EOD postings to complete before 03:00 UTC so morning reconciliation can begin on time across all branches.',
+    props: [
+      ['Status', 'Live'],
+      ['Sized', '13 points'],
+      ['Acceptance', '6 criteria'],
+      ['Ticket', 'CB-3471'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'jira/CB-3471.md',           lines: 'full ticket', snippet: 'Treasury batch close — acceptance' },
+      { type: 'doc', path: 'docs/ops/eod-runbook.md',   lines: '§ 1–3',       snippet: 'EOD batch timing & SLAs' },
+    ]
+  },
+  process: {
+    title: 'Settlement Flow',
+    type: 'Process Flow',
+    desc: 'Multi-step end-of-day flow: validate txns → post to GL → reconcile → emit audit. Five steps, three decision points, seven failure modes.',
+    props: [
+      ['Steps', '5'],
+      ['Decisions', '3'],
+      ['Failure modes', '7'],
+      ['Avg duration', '47 min'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/flows/settlement.bpmn',  lines: 'full diagram',  snippet: 'BPMN — settlement flow' },
+      { type: 'jcl', path: 'jcl/EODBATCH.JCL',            lines: 'L1–42',         snippet: 'EOD batch JCL chain' },
+    ]
+  },
+  program: {
+    title: 'CUST-TXN-BATCH (program)',
+    type: 'COBOL Program',
+    desc: 'The daily customer transaction posting program. Reads transactions from sequential file, validates, posts to GL, writes rejected txns to reject file.',
+    props: [
+      ['Lines', '1,247'],
+      ['Paragraphs', '28'],
+      ['Copybooks', '14'],
+      ['Written', '1997-04-14'],
+    ],
+    evidence: [
+      { type: 'cbl', path: 'src/cbl/CUST_TXN_BATCH.cbl',  lines: 'L1–1247', snippet: 'IDENTIFICATION DIVISION.' },
+      { type: 'doc', path: 'docs/programs/CUST-TXN.md',   lines: 'full',    snippet: 'CUST-TXN-BATCH — design doc (1997)' },
+    ]
+  },
+  copybook: {
+    title: 'TXNREC.CPY',
+    type: 'Copybook',
+    desc: 'Record layout for customer transaction file. Shared by 14 programs. 28 bytes fixed length.',
+    props: [
+      ['Fields', '4'],
+      ['Length', '28 bytes'],
+      ['Used by', '14 programs'],
+      ['Version', '3 (2018)'],
+    ],
+    evidence: [
+      { type: 'cpy', path: 'src/cpy/TXNREC.CPY',          lines: 'L1–14',   snippet: '01  TXN-RECORD.' },
+    ]
+  },
+  sproc: {
+    title: 'SP_POST_LEDGER',
+    type: 'Stored Procedure',
+    desc: 'DB2 stored procedure that posts a validated transaction to GL_TXN with retry-on-deadlock. Originally written 1997, last touched 2018.',
+    props: [
+      ['Returns', 'INTEGER status'],
+      ['Retries', '3 on deadlock'],
+      ['Isolation', 'REPEATABLE READ'],
+      ['Avg duration', '12ms'],
+    ],
+    evidence: [
+      { type: 'sql', path: 'db/procs/SP_POST_LEDGER.sql', lines: 'L1–142',  snippet: 'CREATE PROCEDURE SP_POST_LEDGER' },
+    ]
+  },
+  jcl: {
+    title: 'EOD Batch Chain',
+    type: 'JCL Job',
+    desc: 'JCL job that orchestrates the end-of-day batch — kicks off CUST-TXN-BATCH, then reconciliation, then audit emit. Runs at 22:30 UTC daily.',
+    props: [
+      ['Trigger', '22:30 UTC daily'],
+      ['Steps', '7'],
+      ['Avg runtime', '4h 12m'],
+      ['SLA cutoff', '03:00 UTC'],
+    ],
+    evidence: [
+      { type: 'jcl', path: 'jcl/EODBATCH.JCL',           lines: 'L1–42',   snippet: '//EODBATCH JOB' },
+      { type: 'doc', path: 'docs/ops/eod-schedule.md',   lines: 'full',    snippet: 'EOD scheduling' },
+    ]
+  },
+  software: {
+    title: 'COBOL/CICS Monolith',
+    type: 'Software',
+    desc: 'The core banking monolith — 847K lines of COBOL across 1,247 programs, running on IBM z/OS with CICS for online and JCL for batch.',
+    props: [
+      ['LOC', '847,213'],
+      ['Programs', '1,247'],
+      ['Platform', 'z/OS · CICS · DB2'],
+      ['Last touched', 'Sep 2024'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'README.md',                  lines: 'full',    snippet: 'Core Banking — monolith README' },
+      { type: 'doc', path: 'docs/architecture/v1.pdf',   lines: '47 pages',snippet: 'Architecture overview (2019)' },
+    ]
+  },
+  system: {
+    title: 'Core Banking Platform',
+    type: 'System',
+    desc: 'The full Demo Bank core banking platform — accounts, payments, ledger, KYC. The system being modernised.',
+    props: [
+      ['Customers', '1.4M'],
+      ['Daily txns', '4.8M'],
+      ['Uptime', '99.97%'],
+      ['Compliance', 'OCC, SOX'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/system-overview.md',    lines: 'full',    snippet: 'Demo Bank Core — overview' },
+    ]
+  },
+  project: {
+    title: 'Demo Bank Core Modernisation',
+    type: 'Project',
+    desc: 'Engagement scope: end-to-end modernisation of the Demo Bank COBOL core banking monolith to a cloud-native Java service estate.',
+    props: [
+      ['Duration', '42 weeks · phased'],
+      ['Phases', '6'],
+      ['Engineers', '4 Panasa + agent swarm'],
+      ['Commercial', 'fixed-price'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'engagement/sow-v2.pdf',      lines: 'signed',  snippet: 'Statement of Work' },
+    ]
+  },
+};
+
+/* =====================================================================
+   COBOL + JAVA SAMPLES (for code-gen stage)
+   ===================================================================== */
+const COBOL_SAMPLE = `       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CUST-TXN-BATCH.
+       AUTHOR. CORE-BANKING-TEAM.
+       DATE-WRITTEN. 1997-04-14.
+      *--------------------------------------------------
+      * PROCESS DAILY CUSTOMER TRANSACTION FILE
+      *   - VALIDATE AMOUNTS AGAINST POLICY LIMIT
+      *   - POST APPROVED TXNS TO GENERAL LEDGER
+      *   - REJECTED TXNS WRITTEN TO REJECT-FILE
+      *--------------------------------------------------
+       DATA DIVISION.
+       FILE SECTION.
+       FD  TXN-FILE.
+       01  TXN-RECORD.
+           05  TXN-CUST-ID    PIC 9(8).
+           05  TXN-AMOUNT     PIC 9(7)V99.
+           05  TXN-TYPE       PIC X(2).
+           05  TXN-DATE       PIC X(10).
+
+       WORKING-STORAGE SECTION.
+       01  WS-EOF-FLAG       PIC X       VALUE 'N'.
+       01  WS-MAX-AMOUNT     PIC 9(7)V99 VALUE 999999.99.
+       01  WS-TXN-COUNT      PIC 9(7)    VALUE ZERO.
+
+       PROCEDURE DIVISION.
+       MAIN-LOGIC.
+           OPEN INPUT TXN-FILE
+           PERFORM PROCESS-TXNS
+              UNTIL WS-EOF-FLAG = 'Y'
+           CLOSE TXN-FILE
+           STOP RUN.
+
+       VALIDATE-AND-POST.
+           IF TXN-AMOUNT > WS-MAX-AMOUNT
+              PERFORM REJECT-TXN
+           ELSE
+              CALL 'SP_POST_LEDGER'
+                 USING TXN-RECORD
+           END-IF
+           ADD 1 TO WS-TXN-COUNT.`;
+
+const JAVA_SAMPLE = `package com.demobank.core.transactions;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Daily customer transaction batch processor.
+ * Migrated from CUST_TXN_BATCH.cbl (1997-04-14).
+ * Behaviour preserved: validate against MAX_AMOUNT,
+ * post approved txns to GL, reject excess.
+ *
+ * Provenance: every method tagged to its legacy source.
+ */
+@Service
+public class CustomerTransactionBatchService {
+
+    private static final BigDecimal MAX_AMOUNT =
+        new BigDecimal("999999.99");
+
+    private final TransactionRepository repo;
+    private final GeneralLedgerService gl;
+    private final RejectionService rejects;
+
+    public CustomerTransactionBatchService(
+            TransactionRepository repo,
+            GeneralLedgerService gl,
+            RejectionService rejects) {
+        this.repo = repo;
+        this.gl = gl;
+        this.rejects = rejects;
+    }
+
+    @Transactional
+    public BatchResult processBatch(LocalDate businessDate) {
+        var counter = new AtomicLong();
+        try (Stream<TransactionRecord> txns =
+                repo.streamForDate(businessDate)) {
+            txns.forEach(txn -> {
+                validateAndPost(txn);
+                counter.incrementAndGet();
+            });
+        }
+        return new BatchResult(businessDate, counter.get());
+    }
+
+    private void validateAndPost(TransactionRecord txn) {
+        if (txn.amount().compareTo(MAX_AMOUNT) > 0) {
+            rejects.reject(txn, RejectionReason.AMOUNT_EXCEEDS_LIMIT);
+            return;
+        }
+        gl.post(txn);
+    }
+}`;
+
+function highlightCobol(src) {
+  return src
+    .replace(/(\*[^\n]*)/g, '<span class="c">$1</span>')
+    .replace(/\b(IDENTIFICATION|PROGRAM-ID|AUTHOR|DATE-WRITTEN|DATA|FILE|SECTION|FD|WORKING-STORAGE|PIC|VALUE|ZERO|PROCEDURE|DIVISION|OPEN|INPUT|PERFORM|UNTIL|CLOSE|STOP|RUN|READ|AT|END|NOT|MOVE|IF|ELSE|END-IF|ADD|TO|CALL|USING)\b/g, '<span class="k">$1</span>')
+    .replace(/\b(9\([0-9]+\)V?[0-9]*|X\([0-9]+\)|[0-9]+\.[0-9]+|\b[0-9]+\b)/g, '<span class="n">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>');
+}
+function highlightJava(src) {
+  return src
+    .replace(/(\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g, '<span class="c">$1</span>')
+    .replace(/(@\w+)/g, '<span class="an">$1</span>')
+    .replace(/\b(package|import|public|private|static|final|class|void|return|new|try|if|else|var)\b/g, '<span class="k">$1</span>')
+    .replace(/\b(String|BigDecimal|LocalDate|AtomicLong|Stream|Service|Transactional|TransactionRepository|GeneralLedgerService|RejectionService|TransactionRecord|BatchResult|RejectionReason)\b/g, '<span class="t">$1</span>')
+    .replace(/"([^"]*)"/g, '<span class="s">"$1"</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="n">$1</span>');
+}
+
+/* =====================================================================
+   PIPELINE STAGES
+   ===================================================================== */
+const STAGES = [
+  {
+    id: 'discovery',
+    name: 'Discovery',
+    sub: 'mapping the territory',
+    runMeta: 'scanning…',
+    doneMeta: '2,847 files · 14 modules',
+    runLabel: 'Run Discovery',
+    nextLabel: 'Continue to Comprehension',
+    dwell: 2200,
+    agent: {
+      name: 'Discovery Agent',
+      tech: 'discovery_agent',
+      todos: [
+        { text: 'Connect to mainframe source (PDS members)', meta: 'CICS · DB2 · z/OS' },
+        { text: 'Index 2,847 COBOL programs + copybooks',     meta: 'incl. 312 CPY' },
+        { text: 'Parse JCL chains for batch topology',         meta: '84 jobs' },
+        { text: 'Catalogue CICS maps + transactions',          meta: '47 maps' },
+        { text: 'Enumerate DB2 schemas + stored procs',        meta: '142 tables' },
+        { text: 'Classify migration complexity per module',    meta: 'risk-scored' },
+        { text: 'Produce system inventory report',             meta: 'pdf · 47 pp' },
+      ]
+    },
+    render: renderDiscovery,
+    artefacts: [
+      { type: 'pdf',  name: 'System Inventory.pdf',       meta: '2,847 files · 47 pp', evidence: 0,   category: 'docs' },
+      { type: 'json', name: 'dependency-graph.json',      meta: '143 nodes · 412 edges', evidence: 0, category: 'docs' },
+      { type: 'md',   name: 'module-classification.md',   meta: '240 modules · risk-ordered', evidence: 0, category: 'docs' },
+    ]
+  },
+  {
+    id: 'comprehension',
+    name: 'Comprehension',
+    sub: 'understanding the why',
+    runMeta: 'analysing…',
+    doneMeta: '13 entities · 15 edges',
+    runLabel: 'Run Comprehension',
+    nextLabel: 'Continue to Planning',
+    dwell: 3400,
+    agent: {
+      name: 'Comprehension Agent',
+      tech: 'comprehension_agent',
+      todos: [
+        { text: 'Build static call graph from PROCEDURE DIVISION', meta: '4,012 paragraphs' },
+        { text: 'Extract domain entities from copybooks + DDL',    meta: '13 identified' },
+        { text: 'Mine business rules from IF/ELSE + DB constraints', meta: '247 rules' },
+        { text: 'Cluster programs into bounded contexts',          meta: '14 contexts' },
+        { text: 'Identify cross-context coupling',                 meta: '38 deps' },
+        { text: 'Cross-reference Jira tickets + ops runbooks',     meta: '892 docs' },
+        { text: 'Generate relationship graph (click to inspect)',  meta: '13 × 15' },
+        { text: 'Attach evidence pointers to every claim',         meta: '247 pointers' },
+      ]
+    },
+    render: renderComprehension,
+    artefacts: [
+      { type: 'pdf',  name: 'System Map.pdf',             meta: '13 entities · 38 pp',         evidence: 247, category: 'docs' },
+      { type: 'md',   name: 'business-rules.md',          meta: '247 rules · evidence-linked', evidence: 247, category: 'docs' },
+      { type: 'json', name: 'relationship-graph.json',    meta: '13 nodes · 15 edges',         evidence: 0,   category: 'docs' },
+    ]
+  },
+  {
+    id: 'planning',
+    name: 'Planning',
+    sub: 'the migration sequence',
+    runMeta: 'sequencing…',
+    doneMeta: '6 phases · 23 PRs planned',
+    runLabel: 'Run Planning',
+    nextLabel: 'Continue to Code Generation',
+    dwell: 2600,
+    agent: {
+      name: 'Planner Agent',
+      tech: 'planner_agent',
+      todos: [
+        { text: 'Score contexts by risk and dependency',     meta: '14 contexts' },
+        { text: 'Apply strangler-fig pattern',               meta: 'fig topology' },
+        { text: 'Sequence PRs to minimise blast radius',     meta: '23 PRs' },
+        { text: 'Estimate at p80 from past engagements',     meta: '42 wk · p80' },
+        { text: 'Identify rollback triggers per phase',      meta: '6 gates' },
+        { text: 'Produce phased migration plan',             meta: 'md · 38 pp' },
+      ]
+    },
+    render: renderPlanning,
+    artefacts: [
+      { type: 'md',   name: 'Migration Plan.md',          meta: '6 phases · risk-ordered',     evidence: 0, category: 'docs' },
+      { type: 'json', name: 'pr-sequence.json',           meta: '23 PRs queued',               evidence: 0, category: 'docs' },
+    ]
+  },
+  {
+    id: 'codegen',
+    name: 'Code Generation',
+    sub: 'the rewrite, supervised',
+    runMeta: 'generating…',
+    doneMeta: '3 files · 612 lines · evidence-traced',
+    runLabel: 'Run Code Generation',
+    nextLabel: 'Continue to Self Review',
+    dwell: 5200,
+    agent: {
+      name: 'Code Generation Agent',
+      tech: 'codegen_agent',
+      todos: [
+        { text: 'For each paragraph: locate legacy evidence', meta: '28 paragraphs' },
+        { text: 'Translate logic preserving business rules',  meta: 'rule-by-rule' },
+        { text: 'Apply Spring Boot 3.3 idioms',                meta: '@Service · Stream' },
+        { text: 'Tighten data types (PIC → BigDecimal)',       meta: 'no float math' },
+        { text: 'Generate unit + contract tests',              meta: '47 tests' },
+        { text: 'Tag every method with provenance',            meta: 'L→L mapping' },
+      ]
+    },
+    render: renderCodegen,
+    artefacts: [
+      { type: 'code', name: 'CustomerTransactionBatchService.java', meta: '+412 / −0', evidence: 23, category: 'code' },
+      { type: 'code', name: 'TransactionRecord.java',                meta: '+87 / −0',  evidence: 8,  category: 'code' },
+      { type: 'code', name: 'GeneralLedgerRepository.java',          meta: '+196 / −0', evidence: 12, category: 'code' },
+    ]
+  },
+  {
+    id: 'review',
+    name: 'Self Review',
+    sub: 'the AI critiques itself',
+    runMeta: 'reviewing…',
+    doneMeta: '12 pass · 3 flagged',
+    runLabel: 'Run Self Review',
+    nextLabel: 'Continue past checkpoint',
+    isCheckpoint: true,
+    dwell: 2800,
+    agent: {
+      name: 'Self Review Agent',
+      tech: 'review_agent',
+      todos: [
+        { text: 'Static analysis: types, nulls, concurrency',  meta: '3,412 LOC' },
+        { text: 'Behaviour parity vs legacy paragraph',         meta: 'spec compare' },
+        { text: 'Security review: OWASP top 10',                meta: '47 checks' },
+        { text: 'Compliance: SOX, OCC, audit trail',            meta: '23 obligations' },
+        { text: 'Flag decisions requiring human judgement',     meta: '3 flagged' },
+        { text: 'Hand off to engineer for checkpoint',          meta: '→ R. Bhat' },
+      ]
+    },
+    render: renderReview,
+    artefacts: [
+      { type: 'md',   name: 'self-review-report.md',       meta: '15 checks · 3 flagged',    evidence: 15, category: 'docs' },
+    ]
+  },
+  {
+    id: 'testing',
+    name: 'Testing',
+    sub: 'evidence, not assertion',
+    runMeta: 'running tests…',
+    doneMeta: '247 / 248 passing · 94.3% cov',
+    runLabel: 'Run Testing',
+    nextLabel: 'Continue to Merge',
+    dwell: 4200,
+    agent: {
+      name: 'Test Agent',
+      tech: 'test_agent',
+      todos: [
+        { text: 'Run unit suite',                              meta: '189 tests' },
+        { text: 'Run integration suite (ephemeral PostgreSQL)', meta: '59 tests' },
+        { text: 'Replay 10,000 production txns through service', meta: 'parity check' },
+        { text: 'Measure response equivalence vs legacy',       meta: '99.96% match' },
+        { text: 'Benchmark latency vs legacy batch',            meta: '−42% wall time' },
+        { text: 'Quarantine flaky tests',                       meta: '1 quarantined' },
+      ]
+    },
+    render: renderTesting,
+    artefacts: [
+      { type: 'html', name: 'test-report.html',           meta: '247 / 248 · 94.3% cov',     evidence: 248, category: 'docs' },
+      { type: 'json', name: 'parity-report.json',         meta: '10k / 10k match · 0 diffs', evidence: 4,   category: 'docs' },
+    ]
+  },
+  {
+    id: 'merge',
+    name: 'Merge & Integration',
+    sub: 'shipped',
+    runMeta: 'merging…',
+    doneMeta: '23 PRs merged · 0 rollbacks',
+    runLabel: 'Run Merge',
+    nextLabel: 'Pipeline Complete',
+    dwell: 2400,
+    agent: {
+      name: 'Integration Agent',
+      tech: 'integration_agent',
+      todos: [
+        { text: 'Open PR #847 against develop',              meta: '4 files' },
+        { text: 'Wait for CI green (7 checks)',              meta: 'all green' },
+        { text: 'Run security scan (SAST + SBOM)',            meta: '0 issues' },
+        { text: 'Auto-merge on 2 approvals',                  meta: '2 / 2' },
+        { text: 'Deploy via blue-green with 1% canary',       meta: 'k8s · eu-west-2' },
+        { text: 'Monitor SLOs for 24h soak',                  meta: 'watch on' },
+      ]
+    },
+    render: renderMerge,
+    artefacts: [
+      { type: 'md',   name: 'release-notes-v1.48.md',     meta: 'auto-generated',  evidence: 0, category: 'docs' },
+      { type: 'json', name: 'deployment-manifest.json',   meta: 'k8s · 6 services', evidence: 0, category: 'docs' },
+    ]
+  }
+];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const STATE = {
+  currentIndex: 0,
+  stageState: 'idle',     // 'idle' | 'running' | 'done'
+  artefacts: [],
+  artFilter: 'all',
+  selectedNodeId: 'paragraph',
+  telemetry: { messages: 0, audit: 0, evidence: 0 },
+  hitlClicked: false,
+};
+
+/* =====================================================================
+   ACTIVITY LOG
+   ===================================================================== */
+let logCount = 0;
+const T0 = performance.now();
+function tsNow() {
+  const ms = performance.now() - T0;
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+}
+function log(src, msg, kind = '') {
+  logCount++;
+  const row = document.createElement('div');
+  row.className = 'log-row' + (kind ? ' ' + kind : '');
+  row.innerHTML = `<span class="ts">${tsNow()}</span><span class="src ${src}">[${src.toUpperCase()}]</span><span class="msg">${msg}</span>`;
+  $('log-body').appendChild(row);
+  $('log-body').scrollTop = $('log-body').scrollHeight;
+  $('log-stats').textContent = `${logCount} events`;
+}
+function streamLogs(src, lines, baseDelay = 0, step = 280) {
+  lines.forEach((ln, i) => {
+    setTimeout(() => log(src, ln.msg || ln, ln.kind || ''), baseDelay + i * step);
+  });
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+function init() {
+  initRiskGrid();
+  renderRail();
+  renderCanvas();
+  renderArtefacts();
+  updateFooter();
+  updateNavStats();
+  log('system', 'Cockpit initialised · agent swarm ready');
+  log('system', 'Engagement <strong style="color:var(--ink)">Demo Bank Core</strong> loaded · session PNS-7842');
+  $('advanceBtn').addEventListener('click', advance);
+  $('resetBtn').addEventListener('click', reset);
+  document.querySelectorAll('.art-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.art-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      STATE.artFilter = t.dataset.tab;
+      renderArtefacts();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === 'r' || e.key === 'R') reset();
+  });
+}
+
+function initRiskGrid() {
+  const grid = $('risk-grid');
+  grid.innerHTML = '';
+  const cells = 100; // 5 rows × 20 cols
+  for (let i = 0; i < cells; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'risk-cell';
+    if (i < Math.floor(47/240 * cells)) cell.classList.add('green');
+    grid.appendChild(cell);
+  }
+  const activeIdx = Math.floor(47/240 * cells);
+  if (grid.children[activeIdx]) grid.children[activeIdx].classList.add('active');
+}
+
+function reset() {
+  STATE.currentIndex = 0;
+  STATE.stageState = 'idle';
+  STATE.artefacts = [];
+  STATE.selectedNodeId = 'paragraph';
+  STATE.hitlClicked = false;
+  STATE.telemetry = { messages: 0, audit: 0, evidence: 0 };
+  logCount = 0;
+  $('log-body').innerHTML = '';
+  $('log-stats').textContent = '0 events';
+  $('gov-modules').textContent = '47 / 240';
+  $('gov-coverage').textContent = '—';
+  $('gov-coverage').className = 'v';
+  $('gov-parity').textContent = '—';
+  $('gov-parity').className = 'v';
+  $('gov-approvals').textContent = '0 pending';
+  $('gov-approvals').className = 'v';
+  $('gov-audit').textContent = '0';
+  $('day-counter').textContent = 'Day 6.2';
+  initRiskGrid();
+  renderRail();
+  renderCanvas();
+  renderArtefacts();
+  updateFooter();
+  updateNavStats();
+  log('system', 'Cockpit reset · pipeline ready');
+}
+
+function advance() {
+  const stage = STAGES[STATE.currentIndex];
+  if (STATE.stageState === 'idle') {
+    STATE.stageState = 'running';
+    log(stage.id, `<strong style="color:var(--ink)">${stage.agent.name}</strong> activated · ${stage.agent.todos.length} tasks queued`);
+    renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+    // stream a few log lines from the todos themselves
+    stage.agent.todos.slice(0, 5).forEach((t, i) => {
+      setTimeout(() => log(stage.id, t.text + ' <span style="color:var(--ink-3)">· ' + t.meta + '</span>'), 300 + i * 280);
+    });
+    const dwell = stage.dwell || (1600 + stage.agent.todos.length * 80);
+    setTimeout(() => {
+      STATE.stageState = 'done';
+      log(stage.id, `<strong style="color:var(--green-glow)">✓ ${stage.name.toLowerCase()} complete</strong> · ${stage.doneMeta}`, 'success');
+      // add artefacts with stagger
+      stage.artefacts.forEach((a, i) => {
+        setTimeout(() => {
+          STATE.artefacts.push(a);
+          STATE.telemetry.evidence += (a.evidence || 0);
+          renderArtefacts(); updateNavStats();
+        }, i * 200);
+      });
+      // update governance after specific stages
+      applyGovernanceForStage(stage.id);
+      renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+    }, dwell);
+  } else if (STATE.stageState === 'done') {
+    if (STATE.currentIndex < STAGES.length - 1) {
+      STATE.currentIndex++;
+      STATE.stageState = 'idle';
+      renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+    } else {
+      // pipeline complete — final tick
+      finalisePipeline();
+    }
+  }
+}
+
+function applyGovernanceForStage(stageId) {
+  if (stageId === 'comprehension') {
+    STATE.telemetry.audit += 38;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'planning') {
+    STATE.telemetry.audit += 23;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'codegen') {
+    STATE.telemetry.audit += 33;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'review') {
+    $('gov-approvals').textContent = '3 pending';
+    $('gov-approvals').className = 'v peach';
+    STATE.telemetry.audit += 24;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'testing') {
+    $('gov-coverage').textContent = '94.3%';
+    $('gov-coverage').className = 'v green';
+    $('gov-parity').textContent = '10,000 / 10,000';
+    $('gov-parity').className = 'v green';
+    STATE.telemetry.audit += 24;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'merge') {
+    $('gov-modules').textContent = '48 / 240';
+    $('gov-modules').className = 'v green';
+    $('gov-approvals').textContent = '0 pending';
+    $('gov-approvals').className = 'v';
+    STATE.telemetry.audit += 25;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+    $('day-counter').textContent = 'Day 6.4';
+    // advance risk grid
+    const grid = $('risk-grid');
+    const active = grid.querySelector('.risk-cell.active');
+    if (active) {
+      active.classList.remove('active');
+      active.classList.add('green');
+      if (active.nextElementSibling) active.nextElementSibling.classList.add('active');
+    }
+  }
+}
+
+function finalisePipeline() {
+  // re-render so button shows complete
+  renderRail(); renderCanvas(); updateFooter();
+  log('system', '<strong style="color:var(--green-glow)">✓ Pipeline complete</strong> · module CUST-TXN-BATCH shipped · 192 modules remaining', 'success');
+}
+
+/* =====================================================================
+   RAIL
+   ===================================================================== */
+function renderRail() {
+  const el = $('stages');
+  el.innerHTML = STAGES.map((s, i) => {
+    let cls = 'stage';
+    let metaTxt = '';
+    if (i < STATE.currentIndex) { cls += ' done'; metaTxt = s.doneMeta; }
+    else if (i === STATE.currentIndex) {
+      if (STATE.stageState === 'running') {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = s.runMeta;
+      } else if (STATE.stageState === 'done') {
+        cls += ' done'; metaTxt = s.doneMeta;
+      } else {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = 'ready';
+      }
+    }
+    return `
+      <div class="${cls}">
+        <div class="stage-num"><span class="num-text">${String(i + 1).padStart(2, '0')}</span></div>
+        <div class="stage-body">
+          <div class="stage-name">${s.name}</div>
+          <div class="stage-sub">${s.sub}</div>
+          <div class="stage-meta">${metaTxt}</div>
+        </div>
+      </div>`;
+  }).join('');
+  $('railCount').textContent = `${STATE.currentIndex + (STATE.stageState === 'done' ? 1 : 0)} / 7`;
+}
+
+/* =====================================================================
+   FOOTER + NAV STATS
+   ===================================================================== */
+function updateFooter() {
+  const stage = STAGES[STATE.currentIndex];
+  const completed = STATE.currentIndex + (STATE.stageState === 'done' ? 1 : 0);
+  const pct = (completed / STAGES.length) * 100;
+  $('progressFill').style.width = pct + '%';
+  $('progressText').textContent = `Stage ${Math.min(STAGES.length, STATE.currentIndex + 1)} / ${STAGES.length}`;
+
+  const btn = $('advanceBtn');
+  const label = $('advanceLabel');
+  btn.disabled = false;
+  btn.classList.remove('peach');
+
+  if (STATE.stageState === 'idle') {
+    label.textContent = stage.runLabel;
+    if (stage.isCheckpoint) btn.classList.add('peach');
+  } else if (STATE.stageState === 'running') {
+    label.textContent = `Running ${stage.name}…`;
+    btn.disabled = true;
+  } else if (STATE.stageState === 'done') {
+    if (STATE.currentIndex === STAGES.length - 1) {
+      label.textContent = 'Pipeline Complete · Reset';
+      btn.disabled = true;
+    } else {
+      label.textContent = stage.nextLabel;
+      if (stage.isCheckpoint) btn.classList.add('peach');
+    }
+  }
+}
+
+function updateNavStats() {
+  const active = STAGES.reduce((n, _, i) => {
+    if (i < STATE.currentIndex) return n + 1;
+    if (i === STATE.currentIndex && STATE.stageState !== 'idle') return n + 1;
+    return n;
+  }, 0);
+  $('navAgentsActive').textContent = active;
+  $('navNodes').textContent = (STATE.currentIndex >= 1 || (STATE.currentIndex === 1 && STATE.stageState !== 'idle')) ? GRAPH.nodes.length : 0;
+  $('navEdges').textContent = (STATE.currentIndex >= 1 || (STATE.currentIndex === 1 && STATE.stageState !== 'idle')) ? GRAPH.edges.length : 0;
+  $('navEvidence').textContent = STATE.telemetry.evidence;
+  $('navArtefacts').textContent = STATE.artefacts.length;
+}
+
+/* =====================================================================
+   ARTEFACTS LIST
+   ===================================================================== */
+function renderArtefacts() {
+  const list = $('artList');
+  const filtered = STATE.artefacts.filter(a => STATE.artFilter === 'all' || a.category === STATE.artFilter);
+  if (STATE.artefacts.length === 0) {
+    list.innerHTML = '<div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>';
+  } else if (filtered.length === 0) {
+    list.innerHTML = '<div class="art-empty">No artefacts in this view.</div>';
+  } else {
+    list.innerHTML = filtered.map((a, i) => `
+      <div class="art-item" style="animation-delay:${i * 30}ms">
+        <div class="art-icon ${a.type}">${a.type.toUpperCase()}</div>
+        <div>
+          <div class="art-name">${a.name}</div>
+          <div class="art-meta">${a.meta}</div>
+          ${a.evidence ? `<div class="art-evidence-count">${a.evidence} evidence pointers</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+  $('artCount').textContent = STATE.artefacts.length;
+  $('tabCountAll').textContent = STATE.artefacts.length;
+  $('tabCountCode').textContent = STATE.artefacts.filter(a => a.category === 'code').length;
+  $('tabCountDocs').textContent = STATE.artefacts.filter(a => a.category === 'docs').length;
+}
+
+/* =====================================================================
+   CANVAS HEADER + DISPATCH
+   ===================================================================== */
+function renderCanvas() {
+  const stage = STAGES[STATE.currentIndex];
+  const title = $('canvasTitle');
+  const sub = $('canvasSub');
+  const body = $('canvasBody');
+  const firstWord = stage.name.split(' ')[0];
+  const rest = stage.name.includes(' ') ? ' ' + stage.name.split(' ').slice(1).join(' ') : '';
+  title.innerHTML = `<span class="accent">${firstWord}</span>${rest}`;
+  if (stage.isCheckpoint) title.classList.add('peach'); else title.classList.remove('peach');
+  sub.textContent = stage.sub;
+  body.innerHTML = '';
+  stage.render(body);
+}
+
+/* =====================================================================
+   AGENT BLOCK
+   ===================================================================== */
+function agentBlockHTML(stage) {
+  const isRunning = STATE.stageState === 'running';
+  const isDone = STATE.stageState === 'done';
+  if (!isRunning && !isDone) return '';
+  const isCheckpoint = stage.isCheckpoint;
+  let todosHTML = stage.agent.todos.map((t, i) => `
+    <div class="todo-item done" style="animation-delay: ${i * 110}ms;">
+      <div class="todo-check"></div>
+      <div class="todo-text">${t.text}</div>
+      <div class="todo-meta">${t.meta}</div>
+    </div>`).join('');
+  return `
+    <div class="agent-block">
+      <div class="agent-head">
+        <div class="agent-icon ${isCheckpoint ? 'peach' : ''}">A</div>
+        <div class="agent-name">${stage.agent.name} <span class="label">${stage.agent.tech}</span></div>
+        <div class="agent-status ${isDone ? 'done' : ''}">
+          <span class="dot"></span>
+          ${isDone ? 'completed' : 'running'}
+        </div>
+      </div>
+      <div class="todo-list">${todosHTML}</div>
+    </div>`;
+}
+
+function idlePromptHTML(stage) {
+  return `<div class="idle-prompt">
+    Press <span class="arrow">→</span> to ${stage.runLabel.toLowerCase()}.
+    <div class="idle-prompt-sub">${stage.agent.name} · ${stage.agent.todos.length} tasks queued</div>
+  </div>`;
+}
+
+/* =====================================================================
+   STAGE: DISCOVERY
+   ===================================================================== */
+function renderDiscovery(el) {
+  const stage = STAGES[0];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Files Scanned</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '2,847' : '—'}</div><div class="metric-delta">across 14 modules</div></div>
+      <div class="metric"><div class="metric-label">Lines of COBOL</div><div class="metric-value">${isDone ? '847K' : '—'}</div><div class="metric-delta">last touched Sep 2024</div></div>
+      <div class="metric"><div class="metric-label">Dependencies</div><div class="metric-value ${isDone ? 'amber' : ''}">${isDone ? '143' : '—'}</div><div class="metric-delta">${isDone ? '38 outdated · 7 abandoned' : ''}</div></div>
+    </div>
+
+    <div class="panel-title">Inventory <span class="hint">— what's in the estate</span></div>
+    <div class="discovery-grid">
+      <div class="file-tree">
+        <div class="file-tree-head">⊙ scan · core-banking-legacy</div>
+        <div id="tree-lines"></div>
+      </div>
+      <div>
+        <div class="metric" style="margin-bottom:10px">
+          <div class="metric-label">Migration Complexity Distribution</div>
+          <div class="complexity-bar">
+            <div class="high" id="cx-high" style="width:0%"></div>
+            <div class="med"  id="cx-med"  style="width:0%"></div>
+            <div class="low"  id="cx-low"  style="width:0%"></div>
+          </div>
+          <div class="complexity-legend">
+            <span><span class="swatch" style="background:var(--red)"></span>18 high</span>
+            <span><span class="swatch" style="background:var(--amber)"></span>47 medium</span>
+            <span><span class="swatch" style="background:var(--green-glow)"></span>175 low</span>
+          </div>
+        </div>
+        <div class="panel-row">
+          <div class="metric"><div class="metric-label">JCL Jobs</div><div class="metric-value">${isDone ? '84' : '—'}</div></div>
+          <div class="metric"><div class="metric-label">CICS Maps</div><div class="metric-value">${isDone ? '47' : '—'}</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const treeData = [
+    { txt: '📁 core-banking-legacy/',          cls: 'folder' },
+    { txt: '📁 src/cbl/ (programs)',            cls: 'folder', meta: '1,247 files' },
+    { txt: 'CUST_TXN_BATCH.cbl',                cls: 'file',   meta: '1,247 ln' },
+    { txt: 'GL_POSTING_BATCH.cbl',              cls: 'file',   meta: '892 ln' },
+    { txt: 'EOD_RECON.cbl',                     cls: 'file',   meta: '1,103 ln' },
+    { txt: '📁 src/cpy/ (copybooks)',           cls: 'folder', meta: '312 files' },
+    { txt: '📁 jcl/ (batch chains)',            cls: 'folder', meta: '84 files' },
+    { txt: '📁 cics/maps/',                     cls: 'folder', meta: '47 files' },
+    { txt: '📁 db/schema/ + db/procs/',         cls: 'folder', meta: '142 tables · 78 SPs' },
+  ];
+  const lines = el.querySelector('#tree-lines');
+  treeData.forEach((d, i) => {
+    setTimeout(() => {
+      if (!lines.isConnected) return;
+      const ln = document.createElement('div');
+      ln.className = 'tree-line ' + d.cls;
+      ln.innerHTML = `${d.cls === 'folder' ? '<span class="ic">›</span>' : '<span class="ic">·</span>'} <span>${d.txt}</span> ${d.meta ? `<span class="meta">${d.meta}</span>` : ''}`;
+      lines.appendChild(ln);
+    }, 200 + i * 180);
+  });
+
+  if (isDone) {
+    setTimeout(() => {
+      const h = el.querySelector('#cx-high'); if (h) h.style.width = '7.5%';
+      const m = el.querySelector('#cx-med');  if (m) m.style.width = '19.6%';
+      const l = el.querySelector('#cx-low');  if (l) l.style.width = '72.9%';
+    }, 600);
+  }
+}
+
+/* =====================================================================
+   STAGE: COMPREHENSION (relationship graph + inspector)
+   ===================================================================== */
+function renderComprehension(el) {
+  const stage = STAGES[1];
+  const showData = STATE.stageState !== 'idle';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-title">Relationship Diagram <span class="hint">— extracted from the legacy code · every claim backed by evidence · click a node</span></div>
+    <div class="relgraph" id="relgraph"></div>
+
+    <div class="panel-title">Inspector <span class="hint">— selected node · with evidence trail</span></div>
+    <div class="inspector" id="inspector"></div>
+  `;
+
+  renderGraph();
+  renderInspector();
+}
+
+function renderGraph() {
+  const container = $('relgraph');
+  if (!container) return;
+
+  const W = 960, H = 480;
+  const nodeW = 130, nodeH = 44;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#3a4a43"/>
+      </marker>
+      <marker id="arrgreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#15c277"/>
+      </marker>
+    </defs>`;
+
+  GRAPH.edges.forEach((e, i) => {
+    const from = GRAPH.nodes.find(n => n.id === e.from);
+    const to   = GRAPH.nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    let x1 = from.x, y1 = from.y + nodeH / 2;
+    let x2 = to.x,   y2 = to.y   - nodeH / 2;
+    if (Math.abs(from.y - to.y) < 20) {
+      if (from.x < to.x) { x1 = from.x + nodeW / 2; x2 = to.x - nodeW / 2; }
+      else { x1 = from.x - nodeW / 2; x2 = to.x + nodeW / 2; }
+      y1 = from.y; y2 = to.y;
+    }
+    const isHighlight = (e.from === STATE.selectedNodeId || e.to === STATE.selectedNodeId);
+    const cls = isHighlight ? 'rg-edge highlight' : 'rg-edge';
+    const marker = isHighlight ? 'arrgreen' : 'arr';
+    const midY = (y1 + y2) / 2;
+    svg += `<path d="M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}" class="${cls}" marker-end="url(#${marker})" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 200}ms forwards;"/>`;
+    if (isHighlight) {
+      const mx = (x1 + x2) / 2;
+      const my = midY;
+      svg += `<rect x="${mx - 36}" y="${my - 7}" width="72" height="14" rx="3" fill="#0a0e0c" stroke="#15c277" stroke-opacity="0.4" stroke-width="0.5" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 400}ms forwards;"/>`;
+      svg += `<text x="${mx}" y="${my + 3}" class="rg-edge-label" style="fill: #15c277; opacity: 0; animation: line-in 0.6s ${i * 40 + 500}ms forwards;">${e.label}</text>`;
+    }
+  });
+
+  GRAPH.nodes.forEach((n, i) => {
+    const isSelected = n.id === STATE.selectedNodeId;
+    const fill   = isSelected ? `${n.color}25` : '#141b18';
+    const stroke = isSelected ? n.color : '#2a3a33';
+    const strokeW = isSelected ? 2 : 1;
+    svg += `<g class="rg-node ${isSelected ? 'selected' : ''}" data-id="${n.id}" style="opacity: 0; animation: line-in 0.5s ${i * 60}ms forwards;">
+      <rect x="${n.x - nodeW/2}" y="${n.y - nodeH/2}" width="${nodeW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>
+      <text x="${n.x}" y="${n.y - 3}" class="rg-node-label">${n.label}</text>
+      <text x="${n.x}" y="${n.y + 11}" class="rg-node-type">${n.type}</text>
+    </g>`;
+  });
+
+  svg += '</svg>';
+  svg += `<div class="relgraph-legend">
+    <div class="lg"><div class="sw" style="background:#5dd0ff;"></div>structural</div>
+    <div class="lg"><div class="sw" style="background:#15c277;"></div>behavioural</div>
+    <div class="lg"><div class="sw" style="background:#f5c97a;"></div>data</div>
+    <div class="lg"><div class="sw" style="background:#f5b5a0;"></div>business</div>
+    <div class="lg"><div class="sw" style="background:#c084fc;"></div>technical</div>
+  </div>`;
+
+  container.innerHTML = svg;
+  container.querySelectorAll('.rg-node').forEach(n => {
+    n.addEventListener('click', () => {
+      STATE.selectedNodeId = n.dataset.id;
+      renderGraph();
+      renderInspector();
+      log('comprehension', `Inspecting <strong style="color:var(--ink)">${GRAPH.nodes.find(x => x.id === n.dataset.id).label}</strong> · evidence trail attached`);
+    });
+  });
+}
+
+function renderInspector() {
+  const el = $('inspector');
+  if (!el) return;
+  const ev = EVIDENCE[STATE.selectedNodeId];
+  if (!ev) { el.innerHTML = '<div style="color:var(--ink-3);font-style:italic;">No evidence indexed for this node.</div>'; return; }
+  el.innerHTML = `
+    <div class="inspector-head">
+      <div class="inspector-title">${ev.title}</div>
+      <div class="inspector-type">${ev.type}</div>
+    </div>
+    <div class="inspector-desc">${ev.desc}</div>
+    <div class="inspector-section">
+      <div class="inspector-section-title">Properties</div>
+      <div class="inspector-props">
+        ${ev.props.map(([k, v]) => `<div class="inspector-prop"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="inspector-section">
+      <div class="inspector-section-title">Evidence — extracted from legacy code (${ev.evidence.length} sources)</div>
+      <div class="evidence-list">
+        ${ev.evidence.map(e => `
+          <div class="evidence-item">
+            <div class="evidence-icon ${e.type}">${e.type.toUpperCase()}</div>
+            <div>
+              <div class="evidence-path">${e.path} <span class="lines">${e.lines}</span></div>
+              <div class="evidence-snippet">${e.snippet}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   STAGE: PLANNING
+   ===================================================================== */
+function renderPlanning(el) {
+  const stage = STAGES[2];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Migration Phases</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '6' : '—'}</div><div class="metric-delta">strangler-fig pattern</div></div>
+      <div class="metric"><div class="metric-label">PRs Queued</div><div class="metric-value">${isDone ? '23' : '—'}</div><div class="metric-delta">avg 410 LOC each</div></div>
+      <div class="metric"><div class="metric-label">Est. Duration</div><div class="metric-value">${isDone ? '42 wk' : '—'}</div><div class="metric-delta">p80 confidence · vs 540d manual</div></div>
+    </div>
+
+    <div class="panel-title">Target Architecture <span class="hint">— modern services topology</span></div>
+    <div class="arch-canvas">
+      <div class="arch-row" id="arch-r1"></div>
+      <div class="arch-gap"></div>
+      <div class="arch-row" id="arch-r2"></div>
+    </div>
+
+    <div class="panel-title">Phase Sequence <span class="hint">— risk-ordered, dependency-aware</span></div>
+    <div class="plan-tree" id="plan"></div>
+  `;
+
+  const row1 = el.querySelector('#arch-r1');
+  const boxes1 = [
+    { ttl: 'Batch Scheduler', tag: 'Spring Batch', cls: '' },
+    { ttl: 'Transaction Service', tag: 'Spring Boot · @Service', cls: 'svc' },
+    { ttl: 'General Ledger API', tag: 'REST · OpenAPI 3.0', cls: '' },
+  ];
+  boxes1.forEach((b, i) => setTimeout(() => {
+    if (!row1.isConnected) return;
+    const div = document.createElement('div');
+    div.className = 'arch-box ' + b.cls;
+    div.style.animationDelay = '0s';
+    div.innerHTML = `<div class="ttl">${b.ttl}</div><div class="tag">${b.tag}</div>`;
+    row1.appendChild(div);
+    if (i < boxes1.length - 1) {
+      const a = document.createElement('span');
+      a.className = 'arch-arrow';
+      a.textContent = '→';
+      row1.appendChild(a);
+    }
+  }, 200 + i * 300));
+
+  const row2 = el.querySelector('#arch-r2');
+  const boxes2 = [
+    { ttl: 'PostgreSQL', tag: 'GL · audit', cls: '' },
+    { ttl: 'Kafka Topic', tag: 'tx.events.v1', cls: '' },
+    { ttl: 'S3 (WORM)', tag: 'rejects · 7-yr retention', cls: '' },
+  ];
+  boxes2.forEach((b, i) => setTimeout(() => {
+    if (!row2.isConnected) return;
+    const div = document.createElement('div');
+    div.className = 'arch-box ' + b.cls;
+    div.innerHTML = `<div class="ttl">${b.ttl}</div><div class="tag">${b.tag}</div>`;
+    row2.appendChild(div);
+  }, 1300 + i * 250));
+
+  const plan = el.querySelector('#plan');
+  const phases = [
+    ['Phase 1 — Read-only GL replica behind feature flag',     '6 wk',  'low'],
+    ['Phase 2 — Transaction service strangles CUST-TXN-BATCH', '8 wk',  'med'],
+    ['Phase 3 — Posting service + outbox pattern for events',  '8 wk',  'high'],
+    ['Phase 4 — Reconciliation + audit cutover',                '6 wk',  'low'],
+    ['Phase 5 — Stored-proc translation (SP_POST_LEDGER chain)','8 wk',  'med'],
+    ['Phase 6 — Decommission CICS region · 100% cutover',       '6 wk',  'high'],
+  ];
+  phases.forEach((p, i) => {
+    setTimeout(() => {
+      if (!plan.isConnected) return;
+      const div = document.createElement('div');
+      div.className = 'plan-phase';
+      div.style.animationDelay = '0s';
+      div.innerHTML = `<span class="bullet">▸</span><span class="desc">${p[0]}</span><span class="risk ${p[2]}">${p[2]} risk</span><span class="dur">${p[1]}</span>`;
+      plan.appendChild(div);
+    }, 1800 + i * 130);
+  });
+}
+
+/* =====================================================================
+   STAGE: CODE GENERATION (streaming Java)
+   ===================================================================== */
+function renderCodegen(el) {
+  const stage = STAGES[3];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Files Generated</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '3' : '—'}</div><div class="metric-delta">Java 21 · Spring Boot 3.3</div></div>
+      <div class="metric"><div class="metric-label">Lines Generated</div><div class="metric-value">${isDone ? '612' : '—'}</div><div class="metric-delta">incl. tests + DTOs</div></div>
+      <div class="metric"><div class="metric-label">Evidence-Traced</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '100%' : '—'}</div><div class="metric-delta">every method ↔ legacy paragraph</div></div>
+    </div>
+
+    <div class="provenance">
+      <span class="label">PROVENANCE</span>
+      <span class="crumb peach">CUST_TXN_BATCH.cbl · VALIDATE-AND-POST · L141–178</span>
+      <span class="sep">→</span>
+      <span class="crumb">transformation rules · v1.48</span>
+      <span class="sep">→</span>
+      <span class="crumb green">CustomerTransactionBatchService.java · L42–58</span>
+    </div>
+
+    <div class="panel-title">Translation <span class="hint">— COBOL paragraph · modern Java service · streaming live</span></div>
+    <div class="diff-panel">
+      <div class="diff-header">
+        <div class="diff-tab before"><span class="label">↓ LEGACY</span><span>src/cbl/CUST_TXN_BATCH.cbl</span></div>
+        <div class="diff-tab after"><span class="label">↑ MODERN</span><span>CustomerTransactionBatchService.java</span></div>
+      </div>
+      <div class="diff-body">
+        <div class="diff-side before">${highlightCobol(COBOL_SAMPLE)}</div>
+        <div class="diff-side after" id="java-out"></div>
+      </div>
+    </div>
+  `;
+  streamJava();
+}
+
+function streamJava() {
+  const out = $('java-out');
+  if (!out) return;
+  const fullText = JAVA_SAMPLE;
+  let pos = 0;
+  const chunkSize = 9;
+  function step() {
+    if (!out.isConnected) return;
+    pos = Math.min(fullText.length, pos + chunkSize);
+    const slice = fullText.slice(0, pos);
+    out.innerHTML = highlightJava(slice) + (pos < fullText.length ? '<span class="typing-cursor"></span>' : '');
+    out.scrollTop = out.scrollHeight;
+    if (pos < fullText.length) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* =====================================================================
+   STAGE: SELF REVIEW + CHECKPOINT
+   ===================================================================== */
+function renderReview(el) {
+  const stage = STAGES[4];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    ${isDone ? `
+    <div class="checkpoint-card">
+      <div class="checkpoint-eyebrow">◆ Human Checkpoint Required</div>
+      <div class="checkpoint-title">3 items need an engineer's eye before we proceed.</div>
+      <div class="checkpoint-body">
+        The model translated the code correctly, but flagged three decisions it won't make alone. A Panasa engineer reviews these before the pipeline continues.
+        <span class="em-line">This is the line between AI-assisted and AI-supervised engineering.</span>
+      </div>
+      <div class="checkpoint-flags">
+        <span class="flag">EOF semantics: COBOL AT END vs Stream close</span>
+        <span class="flag">SP_POST_LEDGER retry-on-deadlock lost</span>
+        <span class="flag">WS-TXN-COUNT → BatchResult format change</span>
+      </div>
+      <div class="checkpoint-reviewer">
+        <div class="reviewer-avatar">RB</div>
+        <div>
+          <div class="reviewer-name">Ramesh Bhat</div>
+          <div class="reviewer-role">Principal Engineer, Panasa · assigned · est. 45 min</div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="panel-title">Self-Review Checks <span class="hint">— 15 of 15 · 3 flagged for human review</span></div>
+    <div class="check-list" id="checks"></div>
+  `;
+
+  const items = [
+    ['pass', 'Amount cap preserved (MAX_AMOUNT = WS-MAX-AMOUNT)', '✓ behaviour preserved'],
+    ['pass', 'Validation precedence: reject before post',           '✓ matches IF/ELSE order'],
+    ['pass', 'Counter increments per record',                       '✓ AtomicLong = WS-TXN-COUNT'],
+    ['pass', 'Two-path outcome: reject vs post',                    '✓ no third path introduced'],
+    ['pass', '@Transactional spans entire batch',                   '✓ matches OPEN/CLOSE'],
+    ['warn', 'EOF semantics: COBOL flush vs Stream auto-close',     'human review'],
+    ['pass', 'Logging redacts PII (PAN, DOB, account #)',            '✓ verified · 12 fields'],
+    ['pass', 'No SQL injection — parameterised JPA only',           '✓ 0 string concat'],
+    ['pass', 'Idempotency keys on POST endpoints',                  '✓ 8 / 8'],
+    ['pass', 'Audit events emitted for state-changing ops',         '✓ 4 / 4'],
+    ['warn', 'SP_POST_LEDGER retry-on-deadlock dropped in port',    'human review'],
+    ['pass', 'Null safety — Optional<T> for nullables',             '✓ no NPE paths'],
+    ['warn', 'WS-TXN-COUNT (PIC 9(7)) → BatchResult struct',         'format change'],
+    ['pass', 'Error responses follow RFC 9457 ProblemDetail',       '✓ standardised'],
+    ['pass', 'DB2 indexes preserved in PostgreSQL schema',          '✓ 11 / 11'],
+  ];
+  const checks = el.querySelector('#checks');
+  items.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = `check-item ${it[0]}`;
+    row.style.animationDelay = `${i * 60}ms`;
+    row.innerHTML = `
+      <div class="icon">${it[0] === 'pass' ? '✓' : '!'}</div>
+      <div class="label">${it[1]}</div>
+      <div class="meta">${it[2]}</div>`;
+    checks.appendChild(row);
+  });
+}
+
+/* =====================================================================
+   STAGE: TESTING
+   ===================================================================== */
+function renderTesting(el) {
+  const stage = STAGES[5];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Tests Run</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '247 / 248' : '—'}</div><div class="metric-delta">${isDone ? '1 flake · quarantined' : ''}</div></div>
+      <div class="metric"><div class="metric-label">Coverage</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '94.3%' : '—'}</div><div class="metric-delta">line + branch</div></div>
+      <div class="metric"><div class="metric-label">Response Parity</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '99.96%' : '—'}</div><div class="metric-delta">10,000 replayed txns</div></div>
+    </div>
+
+    <div class="panel-title">Test Run <span class="hint">— 248 tests · 1 flaked (quarantined)</span></div>
+    <div class="test-grid" id="testgrid"></div>
+
+    <div class="panel-title">Verification Strategy <span class="hint">— parity-first, latency-second</span></div>
+    <div class="terminal" id="term"></div>
+  `;
+
+  const grid = el.querySelector('#testgrid');
+  for (let i = 0; i < 240; i++) {
+    const cell = document.createElement('div');
+    const isFlake = i === 73;
+    cell.className = `test-cell ${isFlake ? 'flake' : 'pass'}`;
+    cell.style.animationDelay = `${i * 5}ms`;
+    grid.appendChild(cell);
+  }
+
+  const term = el.querySelector('#term');
+  const lines = [
+    '<span class="ts">[22:31:08]</span> <span class="ok">▸</span> Replaying 10,000 historical txns through new service…',
+    '<span class="ts">[22:31:22]</span> <span class="ok">✓</span> Response parity: <span class="ok">99.96%</span> match · 4 diffs (all in known-change rounding)',
+    '<span class="ts">[22:31:28]</span> <span class="ok">▸</span> Differential test: legacy COBOL ↔ Java service',
+    '<span class="ts">[22:31:54]</span> <span class="ok">✓</span> Latency p50: <span class="file">42ms</span> (was 380ms) · p99: <span class="file">112ms</span> (was 2.4s)',
+    '<span class="ts">[22:31:55]</span> <span class="warn">!</span> Test <span class="file">PostingSagaIT#deadlockRetry</span> flaked — quarantining',
+    '<span class="ts">[22:32:01]</span> <span class="ok">✓</span> Re-run: pass. Marked for stability watch (jira: CB-3520).',
+    '<span class="ts">[22:32:03]</span> <span class="ok">✓</span> <span class="ok">All gates passed.</span> Ready for merge.',
+  ];
+  lines.forEach((l, i) => {
+    setTimeout(() => {
+      if (!term.isConnected) return;
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      line.innerHTML = l;
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    }, 800 + i * 280);
+  });
+}
+
+/* =====================================================================
+   STAGE: MERGE & INTEGRATION
+   ===================================================================== */
+function renderMerge(el) {
+  const stage = STAGES[6];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">PR Merged</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '#847' : '—'}</div><div class="metric-delta">zero rollbacks</div></div>
+      <div class="metric"><div class="metric-label">Services Deployed</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '1 + 2 sidecars' : '—'}</div><div class="metric-delta">k8s · blue-green · canary 1%</div></div>
+      <div class="metric"><div class="metric-label">Module Status</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '48 / 240' : '47 / 240'}</div><div class="metric-delta">${isDone ? '+1 shipped this run' : ''}</div></div>
+    </div>
+
+    <div class="panel-title">Pull Request <span class="hint">— full audit trail, evidence-linked</span></div>
+    <div id="prs"></div>
+  `;
+
+  const prs = [
+    { n: '#847', t: 'Migrate CUST_TXN_BATCH → CustomerTransactionBatchService', meta: '4 files · +612 / −0 · 7 / 7 CI · 2 approvals', status: 'merged · canary 1%' },
+    { n: '#848', t: 'Add parity test harness for transaction batch', meta: '2 files · +247 / −0 · 7 / 7 CI · 2 approvals', status: 'merged' },
+    { n: '#849', t: 'Wire feature flag batch.txn.modern (off by default)', meta: '1 file · +18 / −0 · 7 / 7 CI · 2 approvals', status: 'merged' },
+  ];
+  const prsEl = el.querySelector('#prs');
+  prs.forEach((p, i) => {
+    setTimeout(() => {
+      if (!prsEl.isConnected) return;
+      const card = document.createElement('div');
+      card.className = 'pr-card';
+      card.style.animationDelay = '0s';
+      card.innerHTML = `
+        <div class="pr-num">${p.n}</div>
+        <div>
+          <div class="pr-title">${p.t}</div>
+          <div class="pr-meta">${p.meta}</div>
+        </div>
+        <div class="pr-status">${p.status}</div>`;
+      prsEl.appendChild(card);
+    }, 400 + i * 320);
+  });
+}
+
+/* =====================================================================
+   GO
+   ===================================================================== */
+init();
+
+</script>
+</body>
+</html>

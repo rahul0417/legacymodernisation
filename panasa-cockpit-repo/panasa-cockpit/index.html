@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panasa Modernisation Cockpit — NeoBank Core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e0c;
+    --bg-2: #0f1513;
+    --bg-3: #141b18;
+    --bg-4: #1a2320;
+    --panel: #11181590;
+    --line: #1f2a25;
+    --line-2: #2a3a33;
+    --line-3: #3a4a43;
+    --ink: #e8efe9;
+    --ink-2: #a8b5ad;
+    --ink-3: #6e7e74;
+    --ink-4: #4a5a51;
+    --green: #063622;
+    --green-2: #0b5a3a;
+    --green-glow: #15c277;
+    --green-soft: rgba(21, 194, 119, 0.12);
+    --mint: #ddf8e7;
+    --peach: #f5b5a0;
+    --peach-2: #ff9276;
+    --peach-soft: rgba(245, 181, 160, 0.12);
+    --amber: #f5c97a;
+    --red: #ff6b5e;
+    --purple: #c084fc;
+    --blue: #5dd0ff;
+    --code-bg: #0c1411;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    background-image:
+      radial-gradient(ellipse 800px 400px at 20% 0%, rgba(11, 90, 58, 0.08), transparent 60%),
+      radial-gradient(ellipse 600px 300px at 100% 100%, rgba(245, 181, 160, 0.04), transparent 60%);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .serif { font-family: 'Instrument Serif', serif; font-style: italic; }
+
+  /* ============ APP SHELL ============ */
+  .app {
+    display: grid;
+    grid-template-rows: 56px 36px 1fr 48px;
+    height: 100vh;
+  }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 13px;
+  }
+  .brand-dot {
+    width: 8px; height: 8px;
+    background: var(--green-glow);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--green-glow);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .target {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 16px;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    height: 56px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .target-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+  .target-name { font-weight: 600; font-size: 13px; }
+  .target-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .target-flow .from { color: var(--peach); }
+  .target-flow .arrow { color: var(--ink-3); }
+  .target-flow .to { color: var(--green-glow); }
+  .session {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .session .id { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ SUB NAV ============ */
+  .subnav {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--line);
+    gap: 4px;
+  }
+  .nav-item {
+    padding: 0 14px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-3);
+    cursor: default;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-weight: 500;
+  }
+  .nav-item.active {
+    color: var(--green-glow);
+    border-bottom-color: var(--green-glow);
+  }
+  .nav-item:not(.active):hover { color: var(--ink-2); }
+  .nav-spacer { flex: 1; }
+  .nav-stats {
+    display: flex;
+    gap: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .nav-stat .num { color: var(--ink); font-weight: 600; margin-left: 4px; }
+
+  /* ============ MAIN GRID ============ */
+  .main {
+    display: grid;
+    grid-template-columns: 260px 1fr 340px;
+    overflow: hidden;
+  }
+
+  /* ============ PIPELINE RAIL ============ */
+  .rail {
+    background: var(--bg-2);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+  .rail-title {
+    padding: 0 20px 16px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .stages { position: relative; }
+  .stages::before {
+    content: '';
+    position: absolute;
+    left: 33px;
+    top: 28px;
+    bottom: 28px;
+    width: 1px;
+    background: var(--line);
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    padding: 10px 20px;
+    cursor: default;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .stage:hover { background: rgba(255,255,255,0.015); }
+  .stage-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s ease;
+  }
+  .stage-body { padding-top: 4px; }
+  .stage-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    letter-spacing: -0.005em;
+    transition: color 0.3s ease;
+  }
+  .stage-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 2px;
+    height: 14px;
+    transition: color 0.3s ease;
+  }
+  .stage.done .stage-num {
+    background: var(--green-2);
+    border-color: var(--green-2);
+    color: var(--mint);
+  }
+  .stage.done .stage-num::after {
+    content: '✓';
+    font-size: 12px;
+  }
+  .stage.done .stage-num .num-text { display: none; }
+  .stage.done .stage-name { color: var(--ink); }
+  .stage.done .stage-meta { color: var(--green-glow); }
+  .stage.active .stage-num {
+    background: var(--bg);
+    border-color: var(--green-glow);
+    color: var(--green-glow);
+    box-shadow: 0 0 0 4px rgba(21, 194, 119, 0.12);
+  }
+  .stage.active .stage-name { color: var(--ink); font-weight: 600; }
+  .stage.active .stage-meta { color: var(--green-glow); }
+  .stage.checkpoint .stage-num {
+    background: var(--bg);
+    border-color: var(--peach);
+    color: var(--peach);
+    box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.15);
+    animation: checkpoint-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes checkpoint-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.15); }
+    50% { box-shadow: 0 0 0 8px rgba(245, 181, 160, 0.25); }
+  }
+  .stage.checkpoint .stage-name { color: var(--peach); font-weight: 600; }
+  .stage.checkpoint .stage-meta { color: var(--peach); }
+
+  /* ============ CANVAS ============ */
+  .canvas {
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .canvas-header {
+    padding: 18px 28px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .canvas-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .canvas-title .accent { color: var(--green-glow); }
+  .canvas-title.peach .accent { color: var(--peach); }
+  .canvas-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .canvas-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+
+  /* ============ AGENT TODO BLOCK ============ */
+  .agent-block {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .agent-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .agent-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    border: 1px solid var(--green-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green-glow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .agent-icon.peach { background: var(--peach-soft); border-color: var(--peach); color: var(--peach); }
+  .agent-name { font-size: 13px; font-weight: 600; }
+  .agent-name .label { color: var(--ink-3); font-weight: 400; font-size: 11px; margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
+  .agent-status {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .agent-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .agent-status.done { color: var(--ink-3); }
+  .agent-status.done .dot { background: var(--ink-3); animation: none; box-shadow: none; }
+
+  .todo-list { display: flex; flex-direction: column; gap: 6px; }
+  .todo-item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .todo-check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: transparent;
+    background: transparent;
+  }
+  .todo-item.done .todo-check {
+    background: var(--green-glow);
+    border-color: var(--green-glow);
+    color: var(--bg);
+  }
+  .todo-item.done .todo-check::after { content: '✓'; }
+  .todo-item.running .todo-check {
+    border-color: var(--green-glow);
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .todo-text { font-size: 12px; color: var(--ink-2); }
+  .todo-item.done .todo-text { color: var(--ink); }
+  .todo-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+
+  @keyframes line-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ METRICS ============ */
+  .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .panel-row.triple { grid-template-columns: repeat(3, 1fr); }
+  .panel-row.quad { grid-template-columns: repeat(4, 1fr); }
+  .metric {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .metric-value.green { color: var(--green-glow); }
+  .metric-value.peach { color: var(--peach); }
+  .metric-value.amber { color: var(--amber); }
+  .metric-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title .hint {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-4);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  /* ============ RELATIONSHIP DIAGRAM ============ */
+  .relgraph {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    min-height: 460px;
+  }
+  .relgraph svg {
+    width: 100%;
+    height: 460px;
+    display: block;
+  }
+  .relgraph-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    display: flex;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .relgraph-legend .lg { display: flex; align-items: center; gap: 6px; }
+  .relgraph-legend .sw { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Graph nodes (SVG) */
+  .rg-node {
+    cursor: pointer;
+    transition: filter 0.2s ease;
+  }
+  .rg-node:hover { filter: brightness(1.3); }
+  .rg-node.selected rect { stroke: var(--green-glow); stroke-width: 2; }
+  .rg-node rect {
+    transition: all 0.2s ease;
+  }
+  .rg-node-label {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-node-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-edge {
+    stroke: var(--line-3);
+    stroke-width: 1;
+    fill: none;
+    transition: stroke 0.2s ease;
+  }
+  .rg-edge.highlight { stroke: var(--green-glow); stroke-width: 1.5; }
+  .rg-edge-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    fill: var(--ink-4);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  /* Inspector panel for selected node */
+  .inspector {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .inspector-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .inspector-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .inspector-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    background: var(--green-soft);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid rgba(21, 194, 119, 0.3);
+  }
+  .inspector-desc {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-2);
+    margin-bottom: 16px;
+    line-height: 1.55;
+  }
+  .inspector-section { margin-top: 14px; }
+  .inspector-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .evidence-list { display: flex; flex-direction: column; gap: 6px; }
+  .evidence-item {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .evidence-icon {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .evidence-icon.php { background: rgba(192,132,252,0.15); color: var(--purple); }
+  .evidence-icon.sql { background: rgba(245,201,122,0.15); color: var(--amber); }
+  .evidence-icon.doc { background: rgba(245,181,160,0.15); color: var(--peach); }
+  .evidence-path { color: var(--ink-2); }
+  .evidence-path .lines { color: var(--green-glow); }
+  .evidence-snippet {
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+
+  .inspector-props {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .inspector-prop { display: flex; flex-direction: column; gap: 2px; }
+  .inspector-prop .k {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+  .inspector-prop .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  /* ============ TERMINAL ============ */
+  .terminal {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  .terminal-line { color: var(--ink-2); white-space: pre; opacity: 0; animation: line-in 0.4s forwards; }
+  .terminal-line .ts { color: var(--ink-3); }
+  .terminal-line .ok { color: var(--green-glow); }
+  .terminal-line .warn { color: var(--amber); }
+  .terminal-line .err { color: var(--red); }
+  .terminal-line .arrow { color: var(--ink-3); }
+  .terminal-line .file { color: var(--peach); }
+
+  /* ============ DIFF ============ */
+  .diff-panel {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .diff-header {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  .diff-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .diff-tab.before { border-right: 1px solid var(--line); color: var(--peach); }
+  .diff-tab.after { color: var(--green-glow); }
+  .diff-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .diff-side {
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .diff-side.before { border-right: 1px solid var(--line); }
+  .diff-side .kw { color: #c084fc; }
+  .diff-side .str { color: #f5c97a; }
+  .diff-side .com { color: var(--ink-3); }
+  .diff-side .fn { color: #5dd0ff; }
+
+  /* Provenance trail in code-gen */
+  .provenance {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .provenance .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    padding-right: 12px;
+    border-right: 1px solid var(--line);
+    margin-right: 4px;
+  }
+  .provenance .crumb { color: var(--ink-2); }
+  .provenance .crumb.green { color: var(--green-glow); }
+  .provenance .crumb.peach { color: var(--peach); }
+  .provenance .sep { color: var(--ink-4); }
+
+  /* Self review */
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    padding: 9px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .check-item .icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .check-item.pass .icon { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .check-item.warn .icon { background: rgba(245, 201, 122, 0.15); color: var(--amber); }
+  .check-item .label { font-size: 12px; }
+  .check-item .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+
+  /* Checkpoint card */
+  .checkpoint-card {
+    background: linear-gradient(135deg, rgba(245, 181, 160, 0.08), rgba(245, 181, 160, 0.02));
+    border: 1px solid var(--peach);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .checkpoint-eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--peach);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .checkpoint-title {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .checkpoint-body {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 600px;
+  }
+  .checkpoint-flags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .flag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--peach);
+    color: var(--peach);
+    border-radius: 100px;
+    background: rgba(245, 181, 160, 0.05);
+  }
+  .checkpoint-reviewer {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(245, 181, 160, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .reviewer-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--peach), var(--peach-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+  }
+  .reviewer-name { font-weight: 600; color: var(--ink); }
+  .reviewer-role { color: var(--ink-3); font-size: 10px; }
+
+  /* Test grid */
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 3px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .test-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--line);
+    opacity: 0;
+    animation: cell-in 0.05s forwards;
+  }
+  .test-cell.pass { background: var(--green-glow); }
+  .test-cell.fail { background: var(--red); }
+  @keyframes cell-in { to { opacity: 1; } }
+
+  /* PR cards */
+  .pr-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+  }
+  .pr-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green-glow);
+    font-weight: 600;
+  }
+  .pr-title { font-size: 13px; font-weight: 500; }
+  .pr-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+  .pr-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: rgba(21, 194, 119, 0.1);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid rgba(21, 194, 119, 0.3);
+  }
+  .pr-card.human .pr-status {
+    background: var(--peach-soft);
+    color: var(--peach);
+    border-color: rgba(245, 181, 160, 0.4);
+  }
+
+  /* ============ ARTEFACTS SIDEBAR ============ */
+  .artefacts {
+    background: var(--bg-2);
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 18px;
+  }
+  .art-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .art-count { color: var(--green-glow); font-family: 'JetBrains Mono', monospace; }
+
+  .art-tabs {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 14px;
+    background: var(--bg-3);
+  }
+  .art-tab {
+    flex: 1;
+    padding: 6px 10px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+  .art-tab.active {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 0 0 1px var(--line-2);
+  }
+  .art-tab .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-3);
+    margin-left: 4px;
+  }
+
+  .art-list { display: flex; flex-direction: column; gap: 6px; }
+  .art-item {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: center;
+    opacity: 0;
+    animation: art-in 0.5s forwards;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .art-item:hover { border-color: var(--line-3); background: var(--bg-4); }
+  .art-item.selected { border-color: var(--green-glow); background: var(--bg-4); }
+  @keyframes art-in {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .art-icon {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .art-icon.pdf { background: rgba(245, 181, 160, 0.15); color: var(--peach); }
+  .art-icon.md { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .art-icon.json { background: rgba(245, 201, 122, 0.15); color: var(--amber); }
+  .art-icon.code { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+  .art-icon.html { background: rgba(93, 208, 255, 0.15); color: var(--blue); }
+  .art-name { font-size: 12px; font-weight: 500; color: var(--ink); }
+  .art-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+
+  .art-evidence-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--green-glow);
+    margin-top: 4px;
+  }
+  .art-evidence-count::before {
+    content: '◆';
+    font-size: 8px;
+  }
+
+  .art-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-3);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .progress-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 100px;
+    overflow: hidden;
+    max-width: 320px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-2), var(--green-glow));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 8px var(--green-glow);
+  }
+  .progress-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    min-width: 60px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter Tight', sans-serif;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary {
+    background: var(--green-glow);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #1ed889; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary.peach { background: var(--peach); }
+  .btn-primary.peach:hover { background: var(--peach-2); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--line-2);
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
+  .btn-kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 3px;
+    opacity: 0.7;
+  }
+  .btn-primary .btn-kbd { background: rgba(0,0,0,0.15); }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Panasa</span>
+      <span style="color: var(--ink-3); font-weight: 400;">/ Modernisation Cockpit</span>
+    </div>
+    <div class="target">
+      <div>
+        <div class="target-label">Engagement</div>
+        <div class="target-name">NeoBank Core Banking Platform</div>
+      </div>
+      <div class="target-flow">
+        <span class="from">PHP 5.6 Monolith</span>
+        <span class="arrow">──▶</span>
+        <span class="to">Java 21 / Spring Boot Microservices</span>
+      </div>
+    </div>
+    <div class="session">
+      <span>Session</span>
+      <span class="id">PNS-7842</span>
+      <span style="color: var(--green-glow);">●</span>
+      <span>Live</span>
+    </div>
+  </header>
+
+  <!-- SUB NAV -->
+  <nav class="subnav">
+    <div class="nav-item active">Pipeline</div>
+    <div class="nav-item">Relationships</div>
+    <div class="nav-item">Artefacts</div>
+    <div class="nav-item">Agents</div>
+    <div class="nav-item">Evidence</div>
+    <div class="nav-item">Tasks</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-stats">
+      <span class="nav-stat">NODES <span class="num" id="navNodes">0</span></span>
+      <span class="nav-stat">EDGES <span class="num" id="navEdges">0</span></span>
+      <span class="nav-stat">EVIDENCE <span class="num" id="navEvidence">0</span></span>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- Pipeline rail -->
+    <aside class="rail">
+      <div class="rail-title">Pipeline</div>
+      <div class="stages" id="stages"></div>
+    </aside>
+
+    <!-- Canvas -->
+    <section class="canvas">
+      <header class="canvas-header" id="canvasHeader">
+        <h1 class="canvas-title" id="canvasTitle"></h1>
+        <span class="canvas-sub" id="canvasSub"></span>
+      </header>
+      <div class="canvas-body" id="canvasBody"></div>
+    </section>
+
+    <!-- Artefacts -->
+    <aside class="artefacts">
+      <div class="art-title">
+        <span>Artefacts</span>
+        <span class="art-count" id="artCount">0</span>
+      </div>
+      <div class="art-tabs">
+        <div class="art-tab active" data-tab="all">All <span class="count" id="tabCountAll">0</span></div>
+        <div class="art-tab" data-tab="code">Code <span class="count" id="tabCountCode">0</span></div>
+        <div class="art-tab" data-tab="docs">Docs <span class="count" id="tabCountDocs">0</span></div>
+      </div>
+      <div class="art-list" id="artList">
+        <div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>
+      </div>
+    </aside>
+
+  </div>
+
+  <footer class="footer">
+    <div class="progress-wrap">
+      <span class="progress-label">PROGRESS</span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+      </div>
+      <span class="progress-text" id="progressText">Stage 1 / 7</span>
+    </div>
+    <button class="btn btn-ghost" id="resetBtn">
+      <span>Reset</span>
+      <span class="btn-kbd">R</span>
+    </button>
+    <button class="btn btn-primary" id="advanceBtn">
+      <span id="advanceLabel">Run Discovery</span>
+      <span class="btn-kbd">→</span>
+    </button>
+  </footer>
+
+</div>
+
+<script>
+// ============================================================================
+// RELATIONSHIP GRAPH DATA (the heart of the Comprehension stage)
+// ============================================================================
+const GRAPH = {
+  nodes: [
+    // Top: Project
+    { id: 'project',   label: 'NeoBank Core',          type: 'project',        x: 480, y: 30,  color: '#5dd0ff' },
+    // System
+    { id: 'system',    label: 'Core Banking',          type: 'system',         x: 480, y: 105, color: '#5dd0ff' },
+    // Software
+    { id: 'software',  label: 'NeoBank Monolith',      type: 'software',       x: 130, y: 195, color: '#c084fc' },
+    // Screens
+    { id: 'screen',    label: 'Account Screens',       type: 'screen_dialog',  x: 480, y: 195, color: '#5dd0ff' },
+    // UI Component
+    { id: 'ui',        label: 'Transaction List',      type: 'ui_component',   x: 320, y: 285, color: '#5dd0ff' },
+    // Function
+    { id: 'function',  label: 'transferFunds()',       type: 'function',       x: 640, y: 285, color: '#15c277' },
+    // Process flow
+    { id: 'process',   label: 'Payment Flow',          type: 'process_flow',   x: 320, y: 365, color: '#f5c97a' },
+    // Feature
+    { id: 'feature',   label: 'P2P Transfers',         type: 'feature',        x: 130, y: 365, color: '#f5b5a0' },
+    // Database
+    { id: 'database',  label: 'accounts',              type: 'database_table', x: 480, y: 365, color: '#f5c97a' },
+    // HTTP API
+    { id: 'api',       label: 'POST /transfers',       type: 'http_api',       x: 800, y: 365, color: '#15c277' },
+    // User Story
+    { id: 'story',     label: 'Send Money to Friend',  type: 'user_story',     x: 130, y: 445, color: '#f5b5a0' },
+    // Business Rule
+    { id: 'rule',      label: 'Daily Limit £25k',      type: 'business_rule',  x: 480, y: 445, color: '#f5b5a0' },
+  ],
+  edges: [
+    { from: 'project',  to: 'system',   label: 'has' },
+    { from: 'system',   to: 'software', label: 'runs_on' },
+    { from: 'system',   to: 'screen',   label: 'has' },
+    { from: 'screen',   to: 'ui',       label: 'uses' },
+    { from: 'screen',   to: 'function', label: 'triggers' },
+    { from: 'ui',       to: 'process',  label: 'invokes' },
+    { from: 'function', to: 'database', label: 'reads/writes' },
+    { from: 'function', to: 'api',      label: 'exposes' },
+    { from: 'process',  to: 'database', label: 'reads' },
+    { from: 'software', to: 'feature',  label: 'implements' },
+    { from: 'feature',  to: 'story',    label: 'satisfies' },
+    { from: 'feature',  to: 'process',  label: 'realised_by' },
+    { from: 'rule',     to: 'function', label: 'enforced_by' },
+    { from: 'rule',     to: 'database', label: 'constrains' },
+    { from: 'story',    to: 'process',  label: 'requires' },
+  ]
+};
+
+// Evidence map: every node has a trail of evidence in the legacy code
+const EVIDENCE = {
+  function: {
+    title: 'transferFunds()',
+    type: 'Function',
+    desc: 'Moves money between two accounts atomically. Validates daily limit, debits source, credits target, emits audit event.',
+    props: [
+      ['Visibility', 'public'],
+      ['Throws', 'InsufficientFundsException'],
+      ['Calls', '3 internal methods'],
+      ['Side effects', 'DB write, event emit'],
+    ],
+    evidence: [
+      { type: 'php', path: 'app/controllers/PaymentController.php', lines: 'L142–198', snippet: 'public function transfer($from, $to, $amount)' },
+      { type: 'php', path: 'app/models/Account.php', lines: 'L67–89', snippet: 'public function debit($amount)' },
+      { type: 'sql', path: 'db/stored_procedures.sql', lines: 'L412–445', snippet: 'CREATE PROCEDURE sp_transfer_funds' },
+      { type: 'doc', path: 'docs/internal/payment-flows.md', lines: '§ 3.2', snippet: 'Transfer rules and daily limits' },
+    ]
+  },
+  database: {
+    title: 'accounts (table)',
+    type: 'Database Table',
+    desc: 'Customer current accounts. Holds balance, status, sort code, and account number. 4.2M rows in production.',
+    props: [
+      ['Rows', '4,213,847'],
+      ['PK', 'account_id (UUID)'],
+      ['Indexes', '8'],
+      ['Read by', '23 endpoints'],
+    ],
+    evidence: [
+      { type: 'sql', path: 'db/schema.sql', lines: 'L78–112', snippet: 'CREATE TABLE accounts' },
+      { type: 'sql', path: 'db/migrations/0042_add_status.sql', lines: 'L1–14', snippet: 'ALTER TABLE accounts ADD COLUMN status' },
+      { type: 'php', path: 'app/models/Account.php', lines: 'L1–245', snippet: 'class Account extends BaseModel' },
+    ]
+  },
+  rule: {
+    title: 'Daily Limit £25,000',
+    type: 'Business Rule',
+    desc: 'No customer can transfer more than £25,000 in any 24-hour period across all P2P payment channels. Hard-coded since 2018; predates open banking integration.',
+    props: [
+      ['Source', 'FCA guidance, internal policy'],
+      ['Enforced at', 'PaymentController + DB trigger'],
+      ['Override', 'Treasury approval'],
+      ['Last reviewed', 'Mar 2024'],
+    ],
+    evidence: [
+      { type: 'php', path: 'app/controllers/PaymentController.php', lines: 'L156', snippet: 'if ($total24h + $amount > 25000)' },
+      { type: 'sql', path: 'db/triggers.sql', lines: 'L23–41', snippet: 'CREATE TRIGGER trg_daily_limit' },
+      { type: 'doc', path: 'docs/compliance/limits-policy-v3.pdf', lines: 'p.12', snippet: 'P2P limits, retail customers' },
+    ]
+  },
+  feature: {
+    title: 'P2P Transfers',
+    type: 'Feature',
+    desc: 'Customers can send money to other NeoBank customers, or to external accounts via Faster Payments. Includes scheduled and recurring transfers.',
+    props: [
+      ['Status', 'Production'],
+      ['Owner', 'Payments squad'],
+      ['User stories', '7'],
+      ['Business rules', '12'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/features/p2p-transfers.md', lines: 'full doc', snippet: 'P2P Transfers — feature spec' },
+      { type: 'php', path: 'app/controllers/PaymentController.php', lines: 'L1–340', snippet: 'class PaymentController' },
+      { type: 'php', path: 'app/services/FasterPayments.php', lines: 'L45–203', snippet: 'class FasterPaymentsClient' },
+    ]
+  },
+  story: {
+    title: 'Send Money to Friend',
+    type: 'User Story',
+    desc: 'As a customer, I want to send money to a friend by selecting them from my contacts, so I can split a bill quickly without typing account details.',
+    props: [
+      ['Status', 'Live'],
+      ['Sized', '5 points'],
+      ['Acceptance', '4 criteria'],
+      ['Ticket', 'NEO-1247'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'jira/NEO-1247.md', lines: 'full ticket', snippet: 'Send Money to Friend — acceptance criteria' },
+      { type: 'doc', path: 'docs/ux/transfer-flow-v2.fig', lines: 'screens 4–9', snippet: 'Figma — transfer flow v2' },
+    ]
+  },
+  process: {
+    title: 'Payment Flow',
+    type: 'Process Flow',
+    desc: 'Multi-step flow: select recipient → enter amount → review → 2FA → confirmation. Includes Faster Payments routing for non-NeoBank recipients.',
+    props: [
+      ['Steps', '5'],
+      ['Decision points', '3'],
+      ['Failure modes', '7'],
+      ['Avg duration', '23 sec'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/flows/payment-flow.bpmn', lines: 'full diagram', snippet: 'BPMN — payment processing flow' },
+      { type: 'php', path: 'app/services/PaymentOrchestrator.php', lines: 'L1–412', snippet: 'class PaymentOrchestrator' },
+    ]
+  },
+  api: {
+    title: 'POST /api/transfers',
+    type: 'HTTP API',
+    desc: 'Initiates a transfer. Idempotent via Idempotency-Key header. Returns 202 Accepted; final state available via GET /transfers/{id}.',
+    props: [
+      ['Method', 'POST'],
+      ['Auth', 'Bearer (user scope)'],
+      ['Rate limit', '5/min per user'],
+      ['Avg latency', '380ms (legacy)'],
+    ],
+    evidence: [
+      { type: 'php', path: 'app/api/v1/TransfersController.php', lines: 'L34–87', snippet: 'public function create()' },
+      { type: 'doc', path: 'docs/api/openapi-v1.yaml', lines: 'L412–478', snippet: '/transfers: post:' },
+    ]
+  },
+  screen: {
+    title: 'Account Screens',
+    type: 'Screen/Dialog',
+    desc: 'The customer-facing screens for account management — balance, transactions, transfer, statement download. Renders via legacy Smarty templates.',
+    props: [
+      ['Screens', '12'],
+      ['Templates', 'Smarty 3'],
+      ['Avg load', '1.8s (legacy)'],
+      ['Mobile', 'responsive (partial)'],
+    ],
+    evidence: [
+      { type: 'php', path: 'app/views/account/', lines: '12 .tpl files', snippet: 'Smarty templates for account UI' },
+      { type: 'doc', path: 'docs/ux/account-screens.fig', lines: 'full file', snippet: 'Figma — account screens master' },
+    ]
+  },
+  ui: {
+    title: 'Transaction List',
+    type: 'UI Component',
+    desc: 'Paginated, filterable list of transactions for an account. Includes virtual scrolling, date grouping, and CSV export.',
+    props: [
+      ['Used by', '4 screens'],
+      ['Filters', 'date, type, amount'],
+      ['Pagination', 'cursor-based'],
+      ['Export', 'CSV, PDF'],
+    ],
+    evidence: [
+      { type: 'php', path: 'app/views/components/transaction-list.tpl', lines: 'L1–187', snippet: '{foreach $transactions as $tx}' },
+    ]
+  },
+  software: {
+    title: 'NeoBank Monolith',
+    type: 'Software',
+    desc: 'The PHP 5.6 monolith that runs the entire core banking platform. Single deployable, single database, ~847K LOC.',
+    props: [
+      ['Language', 'PHP 5.6'],
+      ['Framework', 'Custom MVC'],
+      ['LOC', '847,213'],
+      ['Last update', 'Sep 2024'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'README.md', lines: 'full doc', snippet: 'NeoBank Core — monolith README' },
+      { type: 'doc', path: 'docs/architecture/v1.pdf', lines: '47 pages', snippet: 'Architecture overview (2019)' },
+    ]
+  },
+  system: {
+    title: 'Core Banking System',
+    type: 'System',
+    desc: 'The full NeoBank core banking platform — accounts, payments, ledger, KYC, notifications. The system being modernised.',
+    props: [
+      ['Customers', '1.2M'],
+      ['Daily txns', '4.8M'],
+      ['Uptime', '99.94%'],
+      ['Compliance', 'FCA, PSD2'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'docs/system-overview.md', lines: 'full doc', snippet: 'NeoBank Core — system overview' },
+    ]
+  },
+  project: {
+    title: 'NeoBank Core',
+    type: 'Project',
+    desc: 'The engagement scope: end-to-end modernisation of the NeoBank core banking monolith to a microservices architecture.',
+    props: [
+      ['Duration', '14 weeks'],
+      ['Phases', '6'],
+      ['Engineers', '4 + AI agents'],
+      ['Budget', 'fixed-price'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'engagement/sow-v2.pdf', lines: 'signed', snippet: 'Statement of Work' },
+    ]
+  },
+};
+
+// ============================================================================
+// PIPELINE STAGES
+// ============================================================================
+const STAGES = [
+  {
+    id: 'discovery',
+    name: 'Discovery',
+    sub: 'mapping the territory',
+    runMeta: 'scanning…',
+    doneMeta: '2,847 files · 14 modules',
+    runLabel: 'Run Discovery',
+    nextLabel: 'Continue to Comprehension',
+    agent: {
+      name: 'Discovery Agent',
+      tech: 'discovery_agent',
+      todos: [
+        { text: 'Connect to source repository', meta: 'github.com/neobank/core' },
+        { text: 'Map directory structure', meta: '14 top-level dirs' },
+        { text: 'Index 2,847 source files', meta: 'PHP, SQL, YAML' },
+        { text: 'Parse composer.lock for dependencies', meta: '412 packages' },
+        { text: 'Identify entry points + cron jobs', meta: '23 cron, 4 entry' },
+        { text: 'Detect framework conventions', meta: 'custom MVC' },
+        { text: 'Produce file inventory report', meta: 'pdf · 47 pages' },
+      ]
+    },
+    render: renderDiscovery,
+    artefacts: [
+      { type: 'pdf', name: 'System Inventory.pdf', meta: '2,847 files · 47 pages', evidence: 0, category: 'docs' },
+      { type: 'json', name: 'dependency-graph.json', meta: '143 nodes · 412 edges', evidence: 0, category: 'docs' }
+    ]
+  },
+  {
+    id: 'comprehension',
+    name: 'Comprehension',
+    sub: 'understanding the why',
+    runMeta: 'analysing…',
+    doneMeta: '13 artefacts · 28 edges',
+    runLabel: 'Run Comprehension',
+    nextLabel: 'Continue to Planning',
+    agent: {
+      name: 'Comprehension Agent',
+      tech: 'comprehension_agent',
+      todos: [
+        { text: 'Build static call graph', meta: '4,012 functions' },
+        { text: 'Extract domain entities', meta: '13 identified' },
+        { text: 'Mine business rules from controllers + SPs', meta: '247 rules' },
+        { text: 'Cluster code into bounded contexts', meta: '14 contexts' },
+        { text: 'Identify cross-context coupling', meta: '38 dependencies' },
+        { text: 'Cross-reference with Jira + Confluence', meta: '892 tickets' },
+        { text: 'Generate relationship graph', meta: '13 nodes · 28 edges' },
+        { text: 'Attach evidence pointers to every claim', meta: '247 pointers' },
+      ]
+    },
+    render: renderComprehension,
+    artefacts: [
+      { type: 'pdf', name: 'System Map.pdf', meta: '13 entities · 38 pages', evidence: 247, category: 'docs' },
+      { type: 'md',  name: 'business-rules.md', meta: '247 rules · evidence-linked', evidence: 247, category: 'docs' },
+      { type: 'json', name: 'relationship-graph.json', meta: '13 nodes · 28 edges', evidence: 0, category: 'docs' }
+    ]
+  },
+  {
+    id: 'planning',
+    name: 'Planning',
+    sub: 'the migration sequence',
+    runMeta: 'sequencing…',
+    doneMeta: '6 phases · 23 PRs planned',
+    runLabel: 'Run Planning',
+    nextLabel: 'Continue to Code Generation',
+    agent: {
+      name: 'Planner Agent',
+      tech: 'planner_agent',
+      todos: [
+        { text: 'Score contexts by risk + dependency', meta: '14 contexts' },
+        { text: 'Apply strangler-fig pattern', meta: 'fig topology' },
+        { text: 'Sequence PRs to minimise blast radius', meta: '23 PRs' },
+        { text: 'Estimate using historical engagement data', meta: 'p80 = 14wk' },
+        { text: 'Identify rollback triggers per phase', meta: '6 gates' },
+        { text: 'Generate migration plan document', meta: 'md, 38 pages' },
+      ]
+    },
+    render: renderPlanning,
+    artefacts: [
+      { type: 'md', name: 'Migration Plan.md', meta: '6 phases · risk-ordered', evidence: 0, category: 'docs' },
+      { type: 'json', name: 'pr-sequence.json', meta: '23 PRs queued', evidence: 0, category: 'docs' }
+    ]
+  },
+  {
+    id: 'codegen',
+    name: 'Code Generation',
+    sub: 'the rewrite, supervised',
+    runMeta: 'generating…',
+    doneMeta: '3,412 lines · evidence-traced',
+    runLabel: 'Run Code Generation',
+    nextLabel: 'Continue to Self Review',
+    agent: {
+      name: 'Code Generation Agent',
+      tech: 'codegen_agent',
+      todos: [
+        { text: 'For each function: locate evidence', meta: '412 functions' },
+        { text: 'Translate logic preserving business rules', meta: 'rule-by-rule' },
+        { text: 'Apply Spring Boot 3.3 idioms', meta: '@RestController' },
+        { text: 'Tighten auth scopes (was: implicit)', meta: '@PreAuthorize' },
+        { text: 'Generate unit + contract tests', meta: '247 tests' },
+        { text: 'Tag every method with provenance', meta: '412 tags' },
+      ]
+    },
+    render: renderCodegen,
+    artefacts: [
+      { type: 'code', name: 'AccountService.java', meta: '+412 / −0', evidence: 23, category: 'code' },
+      { type: 'code', name: 'PaymentController.java', meta: '+287 / −0', evidence: 18, category: 'code' },
+      { type: 'code', name: 'LedgerRepository.java', meta: '+196 / −0', evidence: 12, category: 'code' }
+    ]
+  },
+  {
+    id: 'review',
+    name: 'Self Review',
+    sub: 'the AI critiques itself',
+    runMeta: 'reviewing…',
+    doneMeta: '12 pass · 3 flagged',
+    runLabel: 'Run Self Review',
+    nextLabel: 'Continue to Human Checkpoint',
+    isCheckpoint: true,
+    agent: {
+      name: 'Self Review Agent',
+      tech: 'review_agent',
+      todos: [
+        { text: 'Static analysis: types, nulls, concurrency', meta: '3,412 LOC' },
+        { text: 'Behaviour parity vs legacy', meta: 'spec comparison' },
+        { text: 'Security review: OWASP top 10', meta: '47 checks' },
+        { text: 'Compliance: PSD2, FCA, GDPR', meta: '23 obligations' },
+        { text: 'Flag decisions requiring human judgement', meta: '3 flagged' },
+        { text: 'Hand off to engineer for checkpoint', meta: '→ R. Bhat' },
+      ]
+    },
+    render: renderReview,
+    artefacts: [
+      { type: 'md', name: 'self-review-report.md', meta: '15 checks · 3 flagged', evidence: 15, category: 'docs' }
+    ]
+  },
+  {
+    id: 'testing',
+    name: 'Testing',
+    sub: 'evidence, not assertion',
+    runMeta: 'running tests…',
+    doneMeta: '247 / 248 passing · 92% cov',
+    runLabel: 'Run Testing',
+    nextLabel: 'Continue to Merge',
+    agent: {
+      name: 'Test Agent',
+      tech: 'test_agent',
+      todos: [
+        { text: 'Run unit suite', meta: '189 tests' },
+        { text: 'Run integration suite', meta: '59 tests' },
+        { text: 'Replay 10,000 production requests', meta: 'parity check' },
+        { text: 'Measure response equivalence', meta: '99.96% match' },
+        { text: 'Benchmark latency vs legacy', meta: 'p99: 2.4s → 112ms' },
+        { text: 'Quarantine flaky tests', meta: '1 quarantined' },
+      ]
+    },
+    render: renderTesting,
+    artefacts: [
+      { type: 'html', name: 'test-report.html', meta: '247 / 248 · 92% cov', evidence: 248, category: 'docs' },
+      { type: 'json', name: 'parity-report.json', meta: '99.96% match · 4 diffs', evidence: 4, category: 'docs' }
+    ]
+  },
+  {
+    id: 'merge',
+    name: 'Merge & Integration',
+    sub: 'shipped',
+    runMeta: 'merging…',
+    doneMeta: '23 PRs merged · 0 rollbacks',
+    runLabel: 'Run Merge',
+    nextLabel: 'Pipeline Complete',
+    agent: {
+      name: 'Integration Agent',
+      tech: 'integration_agent',
+      todos: [
+        { text: 'Open PRs in dependency order', meta: '23 PRs' },
+        { text: 'Wait for CI green', meta: 'all stages' },
+        { text: 'Auto-merge on approval', meta: '2 reviewers' },
+        { text: 'Apply blue-green deployment', meta: 'k8s · 6 services' },
+        { text: 'Monitor SLOs post-cutover', meta: '24h watch' },
+        { text: 'Generate release notes', meta: 'v2.0.0' },
+      ]
+    },
+    render: renderMerge,
+    artefacts: [
+      { type: 'md', name: 'release-notes-v2.0.0.md', meta: 'auto-generated', evidence: 0, category: 'docs' },
+      { type: 'json', name: 'deployment-manifest.json', meta: 'k8s · 6 services', evidence: 0, category: 'docs' }
+    ]
+  }
+];
+
+// ============================================================================
+// STATE
+// ============================================================================
+let currentIndex = 0;
+let currentStageState = 'idle';
+let artefacts = [];
+let activeArtFilter = 'all';
+let selectedNodeId = 'function'; // default selected node in graph
+
+// ============================================================================
+// INIT
+// ============================================================================
+function init() {
+  renderRail();
+  renderCanvas();
+  updateFooter();
+  updateNavStats();
+  document.getElementById('advanceBtn').addEventListener('click', advance);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.querySelectorAll('.art-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.art-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      activeArtFilter = t.dataset.tab;
+      renderArtefacts();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === 'r' || e.key === 'R') reset();
+  });
+}
+
+function reset() {
+  currentIndex = 0;
+  currentStageState = 'idle';
+  artefacts = [];
+  selectedNodeId = 'function';
+  renderRail();
+  renderCanvas();
+  renderArtefacts();
+  updateFooter();
+  updateNavStats();
+}
+
+function advance() {
+  const stage = STAGES[currentIndex];
+  if (currentStageState === 'idle') {
+    currentStageState = 'running';
+    renderRail();
+    renderCanvas();
+    updateFooter();
+    // Longer beat to let todos animate
+    const dwell = 1600 + stage.agent.todos.length * 80;
+    setTimeout(() => {
+      currentStageState = 'done';
+      stage.artefacts.forEach((a, i) => {
+        setTimeout(() => {
+          artefacts.push(a);
+          renderArtefacts();
+          updateNavStats();
+        }, i * 180);
+      });
+      renderRail();
+      renderCanvas();
+      updateFooter();
+      updateNavStats();
+    }, dwell);
+  } else if (currentStageState === 'done') {
+    if (currentIndex < STAGES.length - 1) {
+      currentIndex++;
+      currentStageState = 'idle';
+      renderRail();
+      renderCanvas();
+      updateFooter();
+    }
+  }
+}
+
+// ============================================================================
+// RAIL
+// ============================================================================
+function renderRail() {
+  const el = document.getElementById('stages');
+  el.innerHTML = STAGES.map((s, i) => {
+    let cls = 'stage';
+    let metaTxt = '';
+    if (i < currentIndex) { cls += ' done'; metaTxt = s.doneMeta; }
+    else if (i === currentIndex) {
+      if (currentStageState === 'running') {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = s.runMeta;
+      } else if (currentStageState === 'done') {
+        cls += ' done'; metaTxt = s.doneMeta;
+      } else {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = 'ready';
+      }
+    }
+    return `
+      <div class="${cls}">
+        <div class="stage-num"><span class="num-text">${String(i + 1).padStart(2, '0')}</span></div>
+        <div class="stage-body">
+          <div class="stage-name">${s.name}</div>
+          <div class="stage-meta">${metaTxt}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================================
+// CANVAS
+// ============================================================================
+function renderCanvas() {
+  const stage = STAGES[currentIndex];
+  const titleEl = document.getElementById('canvasTitle');
+  const subEl = document.getElementById('canvasSub');
+  const bodyEl = document.getElementById('canvasBody');
+  const firstWord = stage.name.split(' ')[0];
+  const rest = stage.name.includes(' ') ? ' ' + stage.name.split(' ').slice(1).join(' ') : '';
+  titleEl.innerHTML = `<span class="accent">${firstWord}</span>${rest}`;
+  if (stage.isCheckpoint) titleEl.classList.add('peach'); else titleEl.classList.remove('peach');
+  subEl.textContent = stage.sub;
+  bodyEl.innerHTML = '';
+  stage.render(bodyEl);
+}
+
+// ============================================================================
+// AGENT TODO BLOCK
+// ============================================================================
+function agentBlockHTML(stage, isRunning, isDone) {
+  const isCheckpoint = stage.isCheckpoint;
+  const todos = stage.agent.todos;
+  const statusClass = isDone ? 'done' : '';
+  const statusLabel = isDone ? 'completed' : 'running';
+
+  let todosHTML = '';
+  todos.forEach((t, i) => {
+    // When running, animate progressively done
+    // When done, all are done
+    let state = 'pending';
+    if (isDone) state = 'done';
+    else if (isRunning) {
+      // Stagger: each one becomes "done" after its delay
+      state = 'done'; // CSS will handle the appearance via animation-delay
+    }
+    todosHTML += `
+      <div class="todo-item ${state}" style="animation-delay: ${i * 120}ms;">
+        <div class="todo-check"></div>
+        <div class="todo-text">${t.text}</div>
+        <div class="todo-meta">${t.meta}</div>
+      </div>`;
+  });
+
+  return `
+    <div class="agent-block">
+      <div class="agent-head">
+        <div class="agent-icon ${isCheckpoint ? 'peach' : ''}">A</div>
+        <div class="agent-name">${stage.agent.name} <span class="label">${stage.agent.tech}</span></div>
+        <div class="agent-status ${statusClass}">
+          <span class="dot"></span>
+          ${statusLabel}
+        </div>
+      </div>
+      <div class="todo-list">${todosHTML}</div>
+    </div>`;
+}
+
+// ============================================================================
+// STAGE RENDERERS
+// ============================================================================
+function renderDiscovery(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[0];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-row triple">
+      <div class="metric">
+        <div class="metric-label">Files Scanned</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '2,847' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">across 14 directories</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Lines of PHP</div>
+        <div class="metric-value">${isDone ? '847K' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">PHP 5.6, last touched 2019</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Dependencies</div>
+        <div class="metric-value ${isDone ? 'amber' : ''}">${isDone ? '143' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">${isDone ? '38 outdated · 7 abandoned' : ''}</div>
+      </div>
+    </div>
+
+    ${!showData ? '<div style="padding:60px 0;text-align:center;color:var(--ink-3);font-family:Instrument Serif;font-style:italic;font-size:16px;">Press → to begin Discovery.</div>' : ''}
+  `;
+}
+
+function renderComprehension(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[1];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-title">
+      Relationship Diagram
+      <span class="hint">— extracted from the legacy code, every claim backed by evidence</span>
+    </div>
+    <div class="relgraph" id="relgraph"></div>
+
+    <div class="panel-title">Inspector — selected node</div>
+    <div class="inspector" id="inspector"></div>
+
+    ${!showData ? '<div style="padding:40px 0;text-align:center;color:var(--ink-3);font-family:Instrument Serif;font-style:italic;font-size:16px;">Press → to extract the relationship graph.</div>' : ''}
+  `;
+
+  if (showData) {
+    renderGraph();
+    renderInspector();
+  }
+}
+
+function renderGraph() {
+  const container = document.getElementById('relgraph');
+  if (!container) return;
+
+  const W = 960, H = 460;
+  const nodeW = 130, nodeH = 44;
+
+  // Build SVG
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#3a4a43"/>
+      </marker>
+      <marker id="arrgreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#15c277"/>
+      </marker>
+    </defs>`;
+
+  // Edges first (so they're under nodes)
+  GRAPH.edges.forEach((e, i) => {
+    const from = GRAPH.nodes.find(n => n.id === e.from);
+    const to = GRAPH.nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    // Connect from bottom of `from` to top of `to`, but allow side connections
+    let x1 = from.x, y1 = from.y + nodeH / 2;
+    let x2 = to.x, y2 = to.y - nodeH / 2;
+    // If they're roughly horizontal, side-connect
+    if (Math.abs(from.y - to.y) < 20) {
+      if (from.x < to.x) { x1 = from.x + nodeW / 2; x2 = to.x - nodeW / 2; }
+      else { x1 = from.x - nodeW / 2; x2 = to.x + nodeW / 2; }
+      y1 = from.y; y2 = to.y;
+    }
+    const isHighlight = (e.from === selectedNodeId || e.to === selectedNodeId);
+    const cls = isHighlight ? 'rg-edge highlight' : 'rg-edge';
+    const marker = isHighlight ? 'arrgreen' : 'arr';
+    // Cubic bezier for smooth curves
+    const midY = (y1 + y2) / 2;
+    svg += `<path d="M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}" class="${cls}" marker-end="url(#${marker})" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 200}ms forwards;"/>`;
+    // Label at midpoint
+    const mx = (x1 + x2) / 2;
+    const my = midY;
+    if (isHighlight) {
+      svg += `<rect x="${mx - 30}" y="${my - 7}" width="60" height="14" rx="3" fill="#0a0e0c" stroke="#15c277" stroke-opacity="0.3" stroke-width="0.5" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 400}ms forwards;"/>`;
+      svg += `<text x="${mx}" y="${my + 3}" class="rg-edge-label" style="fill: #15c277; opacity: 0; animation: line-in 0.6s ${i * 40 + 500}ms forwards;">${e.label}</text>`;
+    }
+  });
+
+  // Nodes
+  GRAPH.nodes.forEach((n, i) => {
+    const isSelected = n.id === selectedNodeId;
+    const fill = isSelected ? `${n.color}25` : '#141b18';
+    const stroke = isSelected ? n.color : '#2a3a33';
+    const strokeW = isSelected ? 2 : 1;
+    svg += `<g class="rg-node ${isSelected ? 'selected' : ''}" data-id="${n.id}" style="opacity: 0; animation: line-in 0.5s ${i * 60}ms forwards;">
+      <rect x="${n.x - nodeW/2}" y="${n.y - nodeH/2}" width="${nodeW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>
+      <text x="${n.x}" y="${n.y - 3}" class="rg-node-label">${n.label}</text>
+      <text x="${n.x}" y="${n.y + 11}" class="rg-node-type">${n.type}</text>
+    </g>`;
+  });
+
+  svg += '</svg>';
+  svg += `<div class="relgraph-legend">
+    <div class="lg"><div class="sw" style="background: #5dd0ff;"></div>structural</div>
+    <div class="lg"><div class="sw" style="background: #15c277;"></div>behavioural</div>
+    <div class="lg"><div class="sw" style="background: #f5c97a;"></div>data</div>
+    <div class="lg"><div class="sw" style="background: #f5b5a0;"></div>business</div>
+    <div class="lg"><div class="sw" style="background: #c084fc;"></div>technical</div>
+  </div>`;
+
+  container.innerHTML = svg;
+
+  // Click handlers
+  container.querySelectorAll('.rg-node').forEach(n => {
+    n.addEventListener('click', () => {
+      selectedNodeId = n.dataset.id;
+      renderGraph();
+      renderInspector();
+    });
+  });
+}
+
+function renderInspector() {
+  const el = document.getElementById('inspector');
+  if (!el) return;
+  const ev = EVIDENCE[selectedNodeId];
+  if (!ev) {
+    el.innerHTML = '<div style="color:var(--ink-3);font-style:italic;">No evidence indexed for this node.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="inspector-head">
+      <div class="inspector-title">${ev.title}</div>
+      <div class="inspector-type">${ev.type}</div>
+    </div>
+    <div class="inspector-desc">${ev.desc}</div>
+
+    <div class="inspector-section">
+      <div class="inspector-section-title">Properties</div>
+      <div class="inspector-props">
+        ${ev.props.map(([k, v]) => `<div class="inspector-prop"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="inspector-section">
+      <div class="inspector-section-title">Evidence — extracted from the legacy code (${ev.evidence.length} sources)</div>
+      <div class="evidence-list">
+        ${ev.evidence.map(e => `
+          <div class="evidence-item">
+            <div class="evidence-icon ${e.type}">${e.type.toUpperCase()}</div>
+            <div>
+              <div class="evidence-path">${e.path} <span class="lines">${e.lines}</span></div>
+              <div class="evidence-snippet">${e.snippet}</div>
+            </div>
+            <div></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderPlanning(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[2];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-row triple">
+      <div class="metric">
+        <div class="metric-label">Migration Phases</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '6' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">strangler-fig pattern</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">PRs Queued</div>
+        <div class="metric-value">${isDone ? '23' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">avg 410 LOC each</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Est. Duration</div>
+        <div class="metric-value">${isDone ? '14 wk' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">at 80% confidence</div>
+      </div>
+    </div>
+
+    <div class="panel-title">Phase Sequence <span class="hint">— risk-ordered, dependency-aware</span></div>
+    <div class="plan-tree" id="plan" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 2;"></div>
+  `;
+
+  if (showData) {
+    const plan = document.getElementById('plan');
+    const phases = [
+      ['01', 'Phase 1 — Read-only ledger replica behind feature flag', '2 wk', 'low'],
+      ['02', 'Phase 2 — Accounts service strangles /api/accounts/*', '3 wk', 'med'],
+      ['03', 'Phase 3 — Payments service + outbox pattern for events', '3 wk', 'high'],
+      ['04', 'Phase 4 — KYC & notifications cutover', '2 wk', 'low'],
+      ['05', 'Phase 5 — Audit service for FCA trail (parallel run)', '2 wk', 'med'],
+      ['06', 'Phase 6 — Decommission monolith, cutover 100%', '2 wk', 'high']
+    ];
+    plan.innerHTML = phases.map((p, i) => `
+      <div style="display: grid; grid-template-columns: 32px 1fr auto auto; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 4px; background: ${i % 2 ? 'transparent' : 'rgba(255,255,255,0.015)'}; opacity: 0; animation: line-in 0.4s ${i * 80}ms forwards;">
+        <span style="color: var(--green-glow); font-weight: 600;">▸</span>
+        <span style="color: var(--ink);">${p[1]}</span>
+        <span style="font-size: 10px; padding: 3px 8px; border-radius: 100px; background: ${p[3] === 'high' ? 'rgba(245,107,94,0.1)' : p[3] === 'med' ? 'rgba(245,201,122,0.1)' : 'rgba(21,194,119,0.1)'}; color: ${p[3] === 'high' ? '#ff6b5e' : p[3] === 'med' ? '#f5c97a' : '#15c277'}; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Inter Tight', sans-serif; font-weight: 600;">${p[3]} risk</span>
+        <span style="color: var(--ink-3); font-size: 11px;">${p[2]}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function renderCodegen(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[3];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-row triple">
+      <div class="metric">
+        <div class="metric-label">Files Generated</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '47' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">Java 21 · Spring Boot 3.3</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Lines Generated</div>
+        <div class="metric-value">${isDone ? '3,412' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">incl. tests + DTOs</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Evidence-Traced</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '100%' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">every method ↔ legacy source</div>
+      </div>
+    </div>
+
+    ${showData ? `
+    <div class="provenance">
+      <span class="label">PROVENANCE</span>
+      <span class="crumb peach">PaymentController.php L142–198</span>
+      <span class="sep">→</span>
+      <span class="crumb">transferFunds()</span>
+      <span class="sep">→</span>
+      <span class="crumb green">AccountService.transfer() L67–104</span>
+    </div>
+    ` : ''}
+
+    <div class="panel-title">Translation Sample <span class="hint">— with provenance trail above</span></div>
+    <div class="diff-panel">
+      <div class="diff-header">
+        <div class="diff-tab before">▸ app/controllers/PaymentController.php</div>
+        <div class="diff-tab after">▸ accounts/AccountService.java</div>
+      </div>
+      <div class="diff-body">
+        <div class="diff-side before"><span class="kw">&lt;?php</span>
+<span class="kw">class</span> <span class="fn">PaymentController</span> {
+  <span class="kw">public function</span> <span class="fn">transfer</span>(
+      $from, $to, $amount) {
+    $sql = <span class="str">"SELECT balance FROM "</span>
+         . <span class="str">"accounts WHERE id="</span> . $from;
+    <span class="com">// daily limit £25k - see rule #12</span>
+    <span class="kw">if</span> ($total24h + $amount &gt; 25000)
+      <span class="kw">throw new</span> Exception(<span class="str">"limit"</span>);
+    <span class="com">// no auth check ⚠</span>
+    <span class="kw">return</span> $this->db->query($sql);
+  }
+}</div>
+        <div class="diff-side after"><span class="kw">@Service</span>
+<span class="kw">public class</span> <span class="fn">AccountService</span> {
+  <span class="kw">@Transactional</span>
+  <span class="kw">@PreAuthorize</span>(<span class="str">"hasRole('USER')"</span>)
+  <span class="kw">public</span> Transfer <span class="fn">transfer</span>(
+      UUID from, UUID to, Money amount) {
+    <span class="com">// rule #12: daily £25k (preserved)</span>
+    dailyLimit.check(from, amount);
+    <span class="kw">return</span> ledger.move(from, to, amount);
+  }
+}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderReview(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[4];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    ${isDone ? `
+    <div class="checkpoint-card">
+      <div class="checkpoint-eyebrow">◆ Human Checkpoint Required</div>
+      <div class="checkpoint-title">3 items need an engineer's eye before we proceed.</div>
+      <div class="checkpoint-body">
+        The model translated the code correctly, but flagged three decisions it won't make alone.
+        A Panasa engineer reviews these before the pipeline continues.
+        <span class="serif" style="color: var(--peach);"> This is the line between AI-assisted and AI-supervised engineering.</span>
+      </div>
+      <div class="checkpoint-flags">
+        <span class="flag">Auth scope on /transactions/internal</span>
+        <span class="flag">FX rounding semantics changed</span>
+        <span class="flag">Stored proc → service: lost retry</span>
+      </div>
+      <div class="checkpoint-reviewer">
+        <div class="reviewer-avatar">RB</div>
+        <div>
+          <div class="reviewer-name">Ramesh Bhat</div>
+          <div class="reviewer-role">Principal Engineer, Panasa · assigned · est. 45 min</div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="panel-title">Self-Review Checks <span class="hint">— 15 of 15</span></div>
+    <div class="check-list" id="checks"></div>
+  `;
+
+  if (showData) {
+    const checks = document.getElementById('checks');
+    const items = [
+      ['pass', 'Type safety preserved across translation', '✓ 412 checks'],
+      ['pass', 'No SQL injection vectors in generated code', '✓ parameterised'],
+      ['pass', 'Idempotency keys present on POST endpoints', '✓ 28 / 28'],
+      ['pass', 'Logging redacts PII fields (PAN, CVV, DOB)', '✓ verified'],
+      ['warn', 'Auth scope: /transactions/internal exposed without role check', 'human review'],
+      ['pass', 'Database transactions wrap multi-step ops', '✓ 47 / 47'],
+      ['pass', 'API contracts match OpenAPI spec', '✓ no drift'],
+      ['warn', 'FX rounding: banker\'s → half-up. Behaviour changed', 'human review'],
+      ['pass', 'Null safety: no NPE risks detected', '✓ Optional<T>'],
+      ['pass', 'Concurrency: no shared mutable state', '✓ immutable DTOs'],
+      ['warn', 'Stored proc translation lost retry-on-deadlock logic', 'human review'],
+      ['pass', 'Audit events emitted for state-changing ops', '✓ 23 / 23'],
+      ['pass', 'Configuration externalised (no hardcoded secrets)', '✓ env vars'],
+      ['pass', 'Error responses match API standard (RFC 9457)', '✓ ProblemDetail'],
+      ['pass', 'Database indexes preserved from legacy schema', '✓ 38 / 38']
+    ];
+    items.forEach((it, i) => {
+      const row = document.createElement('div');
+      row.className = `check-item ${it[0]}`;
+      row.style.animationDelay = `${i * 50}ms`;
+      row.innerHTML = `
+        <div class="icon">${it[0] === 'pass' ? '✓' : '!'}</div>
+        <div class="label">${it[1]}</div>
+        <div class="meta">${it[2]}</div>
+      `;
+      checks.appendChild(row);
+    });
+  }
+}
+
+function renderTesting(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[5];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-row triple">
+      <div class="metric">
+        <div class="metric-label">Tests Run</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '247 / 248' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">${isDone ? '1 flake · re-running' : ''}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Coverage</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '92.4%' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">line + branch</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Response Parity</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '99.96%' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">vs 10,000 replayed requests</div>
+      </div>
+    </div>
+
+    <div class="panel-title">Test Run <span class="hint">— 248 tests · 1 fail</span></div>
+    <div class="test-grid" id="testgrid"></div>
+
+    <div class="panel-title">Verification Strategy</div>
+    <div class="terminal" id="term"></div>
+  `;
+
+  if (showData) {
+    const grid = document.getElementById('testgrid');
+    for (let i = 0; i < 248; i++) {
+      const cell = document.createElement('div');
+      const isFail = i === 73;
+      cell.className = `test-cell ${isFail ? 'fail' : 'pass'}`;
+      cell.style.animationDelay = `${i * 5}ms`;
+      grid.appendChild(cell);
+    }
+
+    const term = document.getElementById('term');
+    const lines = [
+      '<span class="ts">[14:32:01]</span> <span class="ok">▸</span> Replaying 10,000 production requests against new service…',
+      '<span class="ts">[14:32:14]</span> <span class="ok">✓</span> Response parity: <span class="ok">99.96%</span> match (4 diffs, all in known-changed FX rounding)',
+      '<span class="ts">[14:32:18]</span> <span class="ok">▸</span> Running differential testing: legacy ↔ new service',
+      '<span class="ts">[14:32:42]</span> <span class="ok">✓</span> Latency p50: <span class="file">42ms</span> (was 380ms) · p99: <span class="file">112ms</span> (was 2.4s)',
+      '<span class="ts">[14:32:43]</span> <span class="warn">!</span> Test <span class="file">PaymentSagaIT#refundIdempotency</span> flaked — retrying',
+      '<span class="ts">[14:32:51]</span> <span class="ok">✓</span> Re-run: pass. Marked for stability watch.',
+      '<span class="ts">[14:32:52]</span> <span class="ok">✓</span> <span class="ok">All gates passed.</span> Ready for merge.'
+    ];
+    lines.forEach((l, i) => {
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      line.style.animationDelay = `${i * 120}ms`;
+      line.innerHTML = l;
+      term.appendChild(line);
+    });
+  }
+}
+
+function renderMerge(el) {
+  const isRunning = currentStageState === 'running';
+  const isDone = currentStageState === 'done';
+  const showData = isRunning || isDone;
+  const stage = STAGES[6];
+
+  el.innerHTML = `
+    ${showData ? agentBlockHTML(stage, isRunning, isDone) : ''}
+
+    <div class="panel-row triple">
+      <div class="metric">
+        <div class="metric-label">PRs Merged</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '23' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">zero rollbacks</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Services Deployed</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '6' : showData ? '—' : '0'}</div>
+        <div class="metric-delta">k8s · blue-green</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Monolith Traffic</div>
+        <div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '0%' : showData ? '—' : '100%'}</div>
+        <div class="metric-delta">${isDone ? 'fully decommissioned' : ''}</div>
+      </div>
+    </div>
+
+    <div class="panel-title">Merged Pull Requests <span class="hint">— last 24h</span></div>
+    <div id="prs"></div>
+  `;
+
+  if (showData) {
+    const prs = document.getElementById('prs');
+    const list = [
+      ['#1247', 'feat(accounts): introduce accounts-service v1', '+412 / −203 · approved by 2', ''],
+      ['#1248', 'feat(payments): outbox pattern + idempotency keys', '+287 / −156 · approved by 2', ''],
+      ['#1249', 'feat(ledger): event-sourced double-entry ledger', '+196 / −89 · approved by 3', ''],
+      ['#1250', 'fix(review): tighten auth scope on /internal endpoints', '+34 / −12 · R. Bhat (human)', 'human'],
+      ['#1251', 'chore(deploy): k8s manifests + blue-green rollout', '+278 / −0 · approved by 2', '']
+    ];
+    list.forEach((p, i) => {
+      const card = document.createElement('div');
+      card.className = `pr-card ${p[3]}`;
+      card.style.animation = `line-in 0.4s ${i * 80}ms forwards`;
+      card.innerHTML = `
+        <div class="pr-num">${p[0]}</div>
+        <div>
+          <div class="pr-title">${p[1]}</div>
+          <div class="pr-meta">${p[2]}</div>
+        </div>
+        <div class="pr-status">${p[3] === 'human' ? 'HUMAN' : 'MERGED'}</div>
+      `;
+      prs.appendChild(card);
+    });
+  }
+}
+
+// ============================================================================
+// ARTEFACTS SIDEBAR
+// ============================================================================
+function renderArtefacts() {
+  const list = document.getElementById('artList');
+  const count = document.getElementById('artCount');
+  const filtered = artefacts.filter(a => activeArtFilter === 'all' || a.category === activeArtFilter);
+
+  // Update tab counts
+  document.getElementById('tabCountAll').textContent = artefacts.length;
+  document.getElementById('tabCountCode').textContent = artefacts.filter(a => a.category === 'code').length;
+  document.getElementById('tabCountDocs').textContent = artefacts.filter(a => a.category === 'docs').length;
+
+  count.textContent = String(artefacts.length).padStart(2, '0');
+
+  if (filtered.length === 0) {
+    list.innerHTML = artefacts.length === 0
+      ? `<div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>`
+      : `<div class="art-empty">No ${activeArtFilter} artefacts yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((a, i) => `
+    <div class="art-item" style="animation-delay: ${i * 30}ms;">
+      <div class="art-icon ${a.type}">${a.type.toUpperCase()}</div>
+      <div>
+        <div class="art-name">${a.name}</div>
+        <div class="art-meta">${a.meta}</div>
+        ${a.evidence > 0 ? `<div class="art-evidence-count">${a.evidence} evidence sources</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================================
+// NAV STATS
+// ============================================================================
+function updateNavStats() {
+  const totalEvidence = artefacts.reduce((sum, a) => sum + (a.evidence || 0), 0);
+  const nodesShown = currentIndex >= 1 && currentStageState === 'done' || currentIndex > 1 ? GRAPH.nodes.length : 0;
+  const edgesShown = currentIndex >= 1 && currentStageState === 'done' || currentIndex > 1 ? GRAPH.edges.length : 0;
+  document.getElementById('navNodes').textContent = nodesShown;
+  document.getElementById('navEdges').textContent = edgesShown;
+  document.getElementById('navEvidence').textContent = totalEvidence;
+}
+
+// ============================================================================
+// FOOTER
+// ============================================================================
+function updateFooter() {
+  const completed = currentStageState === 'done' ? currentIndex + 1 : currentIndex;
+  const total = STAGES.length;
+  const pct = (completed / total) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `Stage ${Math.min(currentIndex + 1, total)} / ${total}`;
+
+  const btn = document.getElementById('advanceBtn');
+  const label = document.getElementById('advanceLabel');
+  const stage = STAGES[currentIndex];
+
+  if (currentStageState === 'idle') {
+    label.textContent = stage.runLabel;
+    btn.classList.remove('peach');
+    if (stage.isCheckpoint) btn.classList.add('peach');
+    btn.disabled = false;
+  } else if (currentStageState === 'running') {
+    label.textContent = 'Working…';
+    btn.disabled = true;
+  } else if (currentStageState === 'done') {
+    if (currentIndex < STAGES.length - 1) {
+      label.textContent = stage.nextLabel;
+      btn.classList.remove('peach');
+      btn.disabled = false;
+    } else {
+      label.textContent = '✓ Pipeline Complete';
+      btn.disabled = true;
+    }
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
