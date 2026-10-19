@@ -1,0 +1,14 @@
+{
+  "stage": "1-extract",
+  "playback": "alongside-live",
+  "captions": [
+    { "at_ms":     0, "text": "Reading 7 PHP files from chapagain/crud-php-simple…" },
+    { "at_ms":  8000, "text": "Found `users` entity — 4 fields, single table, mysqli backend." },
+    { "at_ms": 18000, "text": "Extracting business rules from CRUD handlers…" },
+    { "at_ms": 32000, "text": "11 acceptance criteria identified — including the AC self-collision branch (often missed)." },
+    { "at_ms": 45000, "text": "2 critical SQL injection sites flagged: edit.php:9 and delete.php:6,9." },
+    { "at_ms": 60000, "text": "Auto-mitigation: Path(gt=0) coercion in FastAPI converts both into 422 Unprocessable Entity." },
+    { "at_ms": 75000, "text": "Contract written to runs/<ts>/contract.json. Stage 1 complete." }
+  ],
+  "settle_caption": "Ready for Stage 2 — Generate."
+}

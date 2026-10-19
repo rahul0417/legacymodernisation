@@ -1,0 +1,41 @@
+# docker-compose for local dev + dual-run harness preview.
+#
+# Services:
+#   db  — PostgreSQL 16
+#   api — Python rewrite (this codebase)
+#
+# The legacy PHP container lives in migrations/crud/dual-run/.
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: crud
+      POSTGRES_PASSWORD: crud
+      POSTGRES_DB: crud
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crud -d crud"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - crud_pg_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CRUD_DATABASE_URL: "postgresql+asyncpg://crud:crud@db:5432/crud"
+      CRUD_CORS_ORIGINS: "http://localhost:5173,http://localhost:4173"
+      CRUD_LOG_LEVEL: "INFO"
+    ports:
+      - "8000:8000"
+
+volumes:
+  crud_pg_data:

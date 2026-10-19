@@ -1,0 +1,21 @@
+{
+  "stage": "2-generate",
+  "playback": "alongside-live",
+  "captions": [
+    { "at_ms":      0, "text": "Copying 73 stack-stable template files into the generated tree…" },
+    { "at_ms":   8000, "text": "Templates copied — shadcn primitives, configs, conftest, exception handlers all pre-vendored." },
+    { "at_ms":  20000, "text": "Writing backend: SQLAlchemy User model with UNIQUE(email) and CHECK(age 0–150)…" },
+    { "at_ms":  45000, "text": "Pydantic schemas with EmailStr and strict=True on age (rejects float coercion)." },
+    { "at_ms":  70000, "text": "UserService.update_user implements the self-collision branch: same email back to same row returns 200." },
+    { "at_ms": 100000, "text": "FastAPI router: 5 endpoints, all path params coerced via Path(gt=0)." },
+    { "at_ms": 130000, "text": "Alembic migration scaffolded — Identity PK, unique index, range check." },
+    { "at_ms": 165000, "text": "Frontend: building UsersPage with shadcn DataTable + AddEditDialog + DeleteAlertDialog…" },
+    { "at_ms": 210000, "text": "Zod schemas mirror Pydantic — message parity locked verbatim." },
+    { "at_ms": 250000, "text": "TanStack Query hooks: rest-args forwarding for v5.20 4-arg signature." },
+    { "at_ms": 290000, "text": "UserForm.tsx: 409 projection runs BEFORE empty-errors early-return (CR-3 fix)." },
+    { "at_ms": 330000, "text": "MSW handlers + vitest specs written per endpoint." },
+    { "at_ms": 370000, "text": "Dual-run scaffolding: seed-pg.sql, seed.sql, 6 API smoke fixtures." },
+    { "at_ms": 410000, "text": "28 entity-specific files written. Stage 2 complete." }
+  ],
+  "settle_caption": "Ready for Stage 3 — Verify & Stand Up."
+}

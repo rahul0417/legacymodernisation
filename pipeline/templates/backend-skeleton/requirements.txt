@@ -1,0 +1,11 @@
+# Runtime dependencies — pin-compatible with pyproject.toml.
+# Use `pip install -e '.[test]'` for the editable install + test extras.
+fastapi==0.110.0
+uvicorn[standard]==0.27.0
+sqlalchemy[asyncio]==2.0.27
+asyncpg==0.29.0
+aiosqlite==0.19.0
+pydantic==2.6.0
+pydantic[email]==2.6.0
+pydantic-settings==2.1.0
+alembic==1.13.1

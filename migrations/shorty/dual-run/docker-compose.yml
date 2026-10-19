@@ -1,0 +1,108 @@
+# Dual-run parity harness for MWU-SHORTY-001.
+#
+# Brings up the legacy PHP shorty and the new FastAPI port side-by-side
+# on a PRIVATE docker network, runs the parity-runner against both,
+# writes the diff report. All services are bound to 127.0.0.1 ONLY (or
+# not published at all) — never reachable from outside the host.
+
+services:
+  # ── Legacy side ────────────────────────────────────────────────────────────
+  mysql-legacy:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: shorty_root_dev_only
+      MYSQL_DATABASE: shorty
+      MYSQL_USER: shorty
+      MYSQL_PASSWORD: shorty_dev_only
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/00-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "shorty", "-pshorty_dev_only"]
+      interval: 3s
+      timeout: 2s
+      retries: 30
+    # No published ports — only reachable via the dualrun network.
+
+  php-legacy:
+    build:
+      # Build context is the migration root so the Dockerfile can COPY
+      # both `source/` and `dual-run/php-overlay/`. No bind-mounts —
+      # everything is baked in, which avoids "can't create mountpoint
+      # in RO bind" failures from the chmod a-w'd source dir.
+      context: ..
+      dockerfile: dual-run/Dockerfile.php
+    depends_on:
+      mysql-legacy:
+        condition: service_healthy
+    ports:
+      # Bound to loopback so the host can curl for debug — never public.
+      - "127.0.0.1:18080:80"
+    healthcheck:
+      # Curl any path; the shorty `not_found()` 404 still counts as a
+      # successful HTTP response for the purpose of "container is alive".
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null -w '%{http_code}' http://localhost/ | grep -q '^[2-4]'"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  # ── New side ───────────────────────────────────────────────────────────────
+  pg-new:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: shorty
+      POSTGRES_PASSWORD: shorty_dev_only
+      POSTGRES_DB: shorty
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shorty -d shorty"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  fastapi-new:
+    build:
+      context: ../generated/backend
+      dockerfile: Dockerfile
+    environment:
+      SHORTY_DB_URL: "postgresql+asyncpg://shorty:shorty_dev_only@pg-new:5432/shorty"
+      SHORTY_HOSTNAME: "http://fastapi-new:8000"
+      SHORTY_SALT: ""
+      SHORTY_PADDING: "3"
+      SHORTY_LOG_LEVEL: "INFO"
+      SHORTY_TRUSTED_PROXIES: "127.0.0.1,parity-runner"
+    depends_on:
+      pg-new:
+        condition: service_healthy
+    volumes:
+      # Mount the pg-seed script and an entrypoint that runs alembic + seed.
+      - ./fastapi-entrypoint.sh:/app/entrypoint.sh:ro
+      - ./seed-pg.sql:/app/seed-pg.sql:ro
+    entrypoint: ["/bin/sh", "/app/entrypoint.sh"]
+    ports:
+      - "127.0.0.1:18000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  # ── Parity runner ──────────────────────────────────────────────────────────
+  parity-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    depends_on:
+      php-legacy:
+        condition: service_healthy
+      fastapi-new:
+        condition: service_healthy
+    volumes:
+      - ./parity-runner.py:/app/parity-runner.py:ro
+      - ./fixtures:/app/fixtures:ro
+      - ./reports:/app/reports
+    environment:
+      PHP_REFERENCE_URL: "http://php-legacy"
+      PYTHON_TARGET_URL: "http://fastapi-new:8000"
+    # Run on demand via `docker compose run --rm parity-runner`.
+    profiles: ["run"]
+
+# Single private network — services reach each other by name; no host exposure.

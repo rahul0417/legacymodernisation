@@ -1,0 +1,149 @@
+# Shape definition for single-entity REST CRUD migrations.
+# Consumed by pipeline/runner/ at boot. Defines the 3 stages, model routing,
+# tool allowlists, gate behaviour, and the celebration screen.
+
+shape: crud
+version: 1
+display_name: "Single-Entity REST CRUD"
+description: >
+  Migrates a legacy single-entity PHP CRUD app (chapagain shape) to
+  FastAPI + SQLAlchemy 2.x async + PostgreSQL 16 + React 18 + shadcn/ui.
+  3 stages, contract-first, button-driven, fallback-recordable.
+
+# ── Stages (executed in order on Run All; individually on stage button click) ──
+
+stages:
+  - id: 1-extract
+    name: "Extract Spec"
+    sub: "the AI reads the legacy source"
+    prompt: prompts/1-extract.md
+    captions: captions/1-extract.json
+    recording: recordings/1-extract     # .cast + .tokens.jsonl
+    model: claude-sonnet-4-6
+    max_turns: 12
+    pre_approved_tools: [Read, Glob, Grep, Write]
+    inputs:
+      source_dir: migrations/crud/source
+    outputs:
+      contract: runs/<ts>/contract.json
+    gate:
+      auto_advance: true
+      pause_seconds: 3
+      continue_button: true     # show "Continue?" prompt that auto-clicks after pause_seconds
+    expected_duration_seconds: 90
+    expected_cost_usd: 0.05
+
+  - id: 2-generate
+    name: "Generate Code"
+    sub: "the AI writes FastAPI + React"
+    prompt: prompts/2-generate.md
+    captions: captions/2-generate.json
+    recording: recordings/2-generate
+    model: claude-opus-4-6
+    max_turns: 25
+    pre_approved_tools: [Read, Write, Edit, Bash, Glob]
+    inputs:
+      contract: runs/<ts>/contract.json
+      templates_dir: pipeline/templates
+    outputs:
+      generated_dir: runs/<ts>/generated
+    gate:
+      auto_advance: true
+      pause_seconds: 3
+      continue_button: true
+    expected_duration_seconds: 420
+    expected_cost_usd: 0.75
+
+  - id: 3-verify
+    name: "Verify & Stand Up"
+    sub: "tests, dual-run, screenshots"
+    prompt: prompts/3-verify.md
+    captions: captions/3-verify.json
+    recording: recordings/3-verify
+    model: claude-sonnet-4-6
+    max_turns: 20
+    pre_approved_tools: [Read, Write, Edit, Bash, Glob]
+    inputs:
+      generated_dir: runs/<ts>/generated
+      review_script: pipeline/scripts/self-review.sh
+    outputs:
+      screenshots_dir: runs/<ts>/screenshots
+      report: runs/<ts>/verify-report.md
+    gate:
+      auto_advance: false       # final stage — drop straight into celebration
+      pause_seconds: 0
+      continue_button: false
+    expected_duration_seconds: 300
+    expected_cost_usd: 0.10
+
+# ── Locks (cross-cutting invariants the codegen must honour) ──────────────────
+
+locks:
+  - id: L1
+    rule: "Self-collision: PUT same unique-field back to same row → 200, not 409."
+    detection_grep: "if .* and .*\\.id == .*\\.id"   # rough heuristic for self-review
+  - id: L2
+    rule: 'AddEditDialog key={editing*?.id ?? "add"} verbatim.'
+    detection_grep: 'key=\{editing.*\?\.id \?\? "add"\}'
+  - id: L3
+    rule: "DELETE verb purity — only @router.delete on the delete route."
+    detection_negative_grep: "@router\\.get.*delete"
+  - id: L4
+    rule: "No dangerouslySetInnerHTML anywhere in frontend src/."
+    detection_negative_grep: "dangerouslySetInnerHTML"
+  - id: L5
+    rule: "Zod ↔ Pydantic message parity verbatim."
+  - id: L6
+    rule: "8-line traceability header on every generated logic file."
+    detection_grep: "MIGRATION TRACEABILITY"
+  - id: L7
+    rule: "No SQL string concat — SQLAlchemy parametrised queries only."
+    detection_negative_grep: "f\".*\\{.*\\}.*FROM|format.*FROM"
+  - id: L8
+    rule: "TanStack v5.20 mutation hooks use (...args) rest forwarding."
+    detection_grep: "onSuccess: \\(\\.\\.\\.args\\)"
+  - id: L9
+    rule: "UserForm 409 projection runs BEFORE empty-errors early-return."
+    # too subtle for grep; covered by an integration test in tests/AddEditDialog.test.tsx
+
+# ── Celebration screen (rendered when Stage 3 completes) ──────────────────────
+
+celebration:
+  title: "Migration complete · chapagain/crud-php-simple → FastAPI + shadcn"
+  numbers:
+    - label: "Tests"
+      template: "{backend_tests_passed} pytest + {frontend_tests_passed} vitest = {total_tests} green"
+    - label: "API smoke"
+      template: "{api_fixtures_passed}/{api_fixtures_total} fixtures pass"
+    - label: "Screenshots"
+      template: "{screenshot_count} (8 legacy + 8 new)"
+    - label: "Generated"
+      template: "{generated_file_count} entity-specific files · {template_file_count} templates reused"
+  mosaic: runs/<ts>/screenshots/mosaic.png
+  buttons:
+    - id: visit_new_app
+      label: "Visit the new app"
+      target: "http://127.0.0.1:21173"
+      kind: "open_url"
+    - id: visit_legacy
+      label: "Compare with legacy"
+      target: "http://127.0.0.1:21080"
+      kind: "open_url"
+    - id: send_recap
+      label: "Send recap to prospect"
+      target: "scripts/post-call.sh"
+      kind: "run_script"
+      args: ["--run-id", "<ts>"]
+    - id: run_again
+      label: "Run another demo"
+      kind: "reset"
+
+# ── Live-or-fallback watchdog (the sales-call safety net) ─────────────────────
+
+watchdog:
+  silent_fallback: true
+  triggers:
+    - no_tokens_for_seconds: 8
+    - any_error: true
+    - exceeded_max_turns: true
+  fallback_source: recordings/   # .cast + .tokens.jsonl per stage

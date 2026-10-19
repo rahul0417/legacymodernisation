@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Session Replay · PNS-CRUD-001</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hud">
+    <div class="hud-left">
+      <span class="hud-title">SESSION REPLAY</span>
+      <span class="hud-sub" id="hud-session">—</span>
+    </div>
+    <div class="hud-controls">
+      <button id="btn-play" class="btn primary" title="Play/Pause (Space)">▶ Play</button>
+      <button id="btn-reset" class="btn" title="Reset to start (R)">⟲ Reset</button>
+      <label class="speed">
+        <span>speed</span>
+        <select id="speed">
+          <option value="1">1×</option>
+          <option value="10">10×</option>
+          <option value="60">60×</option>
+          <option value="300" selected>300×</option>
+          <option value="1000">1000×</option>
+          <option value="instant">instant</option>
+        </select>
+      </label>
+      <label class="skip-idle">
+        <input type="checkbox" id="skip-idle" checked />
+        <span>skip idle &gt; 10s</span>
+      </label>
+      <div class="time">
+        <span id="time-now">00:00:00</span>
+        <span class="muted"> / </span>
+        <span id="time-total">00:00:00</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <span class="hud-stat"><span id="stat-events">0</span> events</span>
+      <span class="hud-stat"><span id="stat-agents">0</span> agents</span>
+      <span class="hud-stat" id="stat-pane-info">main: 0</span>
+    </div>
+  </header>
+
+  <section class="scrubber-wrap">
+    <input type="range" id="scrub" class="scrub" min="0" max="1000" value="0" step="1" />
+    <div class="scrub-ticks" id="scrub-ticks"></div>
+  </section>
+
+  <main class="grid" id="grid">
+    <div class="pane main" data-pane="main">
+      <div class="pane-head">
+        <span class="pane-icon">●</span>
+        <span class="pane-title">main · orchestrator</span>
+        <span class="pane-meta" id="main-meta">—</span>
+      </div>
+      <div class="pane-body" id="pane-main"></div>
+    </div>
+    <div class="agents-strip" id="agents-strip">
+      <!-- agent panes injected here -->
+    </div>
+  </main>
+
+  <footer class="legend">
+    <span class="lg"><i class="ev user"></i> user</span>
+    <span class="lg"><i class="ev text"></i> assistant</span>
+    <span class="lg"><i class="ev thinking"></i> thinking</span>
+    <span class="lg"><i class="ev tool_use"></i> tool</span>
+    <span class="lg"><i class="ev tool_result"></i> result</span>
+    <span class="lg"><i class="ev agent_spawn"></i> agent spawn</span>
+    <span class="lg"><i class="ev agent_done"></i> agent done</span>
+  </footer>
+
+  <script src="replay.js"></script>
+</body>
+</html>

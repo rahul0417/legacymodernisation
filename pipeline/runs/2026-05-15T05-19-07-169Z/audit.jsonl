@@ -1,0 +1,3 @@
+{"ts":"2026-05-15T05:19:07.170Z","event":"engagement_created","shape":"crud","run_id":"2026-05-15T05-19-07-169Z","source_dir":"migrations/crud/source"}
+{"ts":"2026-05-15T05:19:37.481Z","event":"stage_start","stage":"1-extract","model":"claude-sonnet-4-6"}
+{"ts":"2026-05-15T05:19:45.511Z","event":"stage_fallback","stage":"1-extract","reason":"no tokens for 8s"}

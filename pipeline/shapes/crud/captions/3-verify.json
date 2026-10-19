@@ -1,0 +1,21 @@
+{
+  "stage": "3-verify",
+  "playback": "alongside-live",
+  "captions": [
+    { "at_ms":      0, "text": "Running 12 deterministic static checks — layer firewall, no innerHTML, AC-self-collision, DELETE purity…" },
+    { "at_ms":  12000, "text": "All 12 checks PASS." },
+    { "at_ms":  18000, "text": "Creating .venv, installing test dependencies for pytest…" },
+    { "at_ms":  55000, "text": "Running pytest: unit + integration + regression…" },
+    { "at_ms":  78000, "text": "72 pytest tests pass, 0 failed." },
+    { "at_ms":  85000, "text": "Installing npm deps + running vitest…" },
+    { "at_ms": 130000, "text": "35 vitest tests pass. Total: 107/107 green across both suites." },
+    { "at_ms": 145000, "text": "Bringing up 5-service docker stack on private network…" },
+    { "at_ms": 175000, "text": "MySQL + Postgres + PHP-Apache + FastAPI + React/nginx — all healthcheck-green." },
+    { "at_ms": 200000, "text": "Running 14 API smoke fixtures against the new FastAPI…" },
+    { "at_ms": 225000, "text": "14/14 fixtures PASS. Visual capture next." },
+    { "at_ms": 235000, "text": "Playwright capturing 16 screenshots — 8 legacy bare-HTML states + 8 new SPA states." },
+    { "at_ms": 275000, "text": "All screenshots captured. Composing side-by-side mosaic…" },
+    { "at_ms": 295000, "text": "Mosaic ready. Visual transformation complete." }
+  ],
+  "settle_caption": "Migration complete — ready for the celebration screen."
+}

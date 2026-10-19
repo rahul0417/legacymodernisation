@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI-Driven Modernisation · crud-php-simple</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- ── Run view ───────────────────────────────────────────────────── -->
+  <main id="run-view" class="view active">
+    <header class="hud">
+      <div class="hud-left">
+        <span class="hud-title">AI MODERNISATION</span>
+        <span class="hud-sub" id="hud-sub">chapagain/crud-php-simple → FastAPI + shadcn</span>
+      </div>
+      <div class="hud-right">
+        <span class="hud-stat"><span class="lbl">run</span> <span id="run-id">—</span></span>
+        <span class="hud-stat"><span class="lbl">elapsed</span> <span id="elapsed">00:00</span></span>
+        <span class="hud-stat"><span class="lbl" id="conn-label">offline</span> <span class="dot" id="conn-dot"></span></span>
+      </div>
+    </header>
+
+    <section class="banner-wrap">
+      <div id="banner" class="banner">
+        <span class="banner-text" id="banner-text">Ready. Click <b>Run All</b> to begin.</span>
+      </div>
+    </section>
+
+    <section class="progress-strip">
+      <ol class="dots" id="dots">
+        <!-- populated from /shape -->
+      </ol>
+      <div class="continue-hint" id="continue-hint">
+        <span id="continue-text">Continue?</span>
+        <span class="countdown" id="countdown"></span>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button class="btn primary big" id="btn-run-all">▶ Run All</button>
+      <div class="btn-row" id="btn-stages">
+        <!-- stage buttons injected -->
+      </div>
+      <div class="btn-row right">
+        <button class="btn ghost" id="btn-pause-captions" aria-pressed="false">⏸ Captions</button>
+        <button class="btn ghost" id="btn-reset">⟲ Reset</button>
+      </div>
+    </section>
+
+    <section class="stream-panel">
+      <div class="stream-head">
+        <span class="stream-title">live stream</span>
+        <span class="stream-sub">ambient · agent tool calls + brief assistant text</span>
+      </div>
+      <div class="stream-body" id="stream"></div>
+    </section>
+
+    <aside id="devtools" class="devtools hidden">
+      <div class="devtools-head">DEV</div>
+      <button class="btn ghost small" id="btn-sim-fail">🚨 Simulate failure</button>
+      <button class="btn ghost small" id="btn-open-audit">📒 Audit log</button>
+      <span class="devtools-hint">?devtools=1 mode · hidden in normal demo</span>
+    </aside>
+  </main>
+
+  <!-- ── Celebration view ───────────────────────────────────────────── -->
+  <main id="celebrate-view" class="view">
+    <div class="celebrate-bg"></div>
+    <div class="celebrate">
+      <div class="celebrate-eyebrow">✓ MIGRATION COMPLETE</div>
+      <h1 class="celebrate-title" id="celebrate-title">chapagain/crud-php-simple → FastAPI + shadcn</h1>
+      <p class="celebrate-sub" id="celebrate-sub">7 PHP files · 222 LOC · migrated in 3 stages</p>
+
+      <div class="celebrate-grid">
+        <aside class="numbers">
+          <h3>Outcome</h3>
+          <ul id="numbers-list">
+            <!-- filled by JS -->
+          </ul>
+        </aside>
+        <div class="mosaic">
+          <h3>Visual transformation</h3>
+          <div class="mosaic-frame">
+            <img id="mosaic-img" alt="legacy ↔ modern, side-by-side" />
+            <div class="mosaic-fallback" id="mosaic-fallback">
+              <p>Mosaic will appear once Stage 3 captures the 16 screenshots.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="celebrate-actions" id="celebrate-actions">
+        <!-- buttons injected from shape.celebration.buttons -->
+      </div>
+    </div>
+  </main>
+
+  <script src="/cockpit.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+{
+    "generated_by": "tests/fixtures/_gen_encode_vectors.php",
+    "generated_at": "2026-05-14T01:36:52+00:00",
+    "php_version": "8.5.6",
+    "source_legacy": "source/shorty.php",
+    "config": {
+        "chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "salt": "",
+        "padding": 3
+    },
+    "vectors": [
+        {
+            "id": "A1",
+            "n": 1,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "b"
+        },
+        {
+            "id": "A2",
+            "n": 10,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "k"
+        },
+        {
+            "id": "A3",
+            "n": 25,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "z"
+        },
+        {
+            "id": "A4",
+            "n": 26,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "A"
+        },
+        {
+            "id": "A5",
+            "n": 42,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "Q"
+        },
+        {
+            "id": "A6",
+            "n": 52,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "0"
+        },
+        {
+            "id": "A7",
+            "n": 61,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "9"
+        },
+        {
+            "id": "A8",
+            "n": 62,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "ba"
+        },
+        {
+            "id": "A9",
+            "n": 100,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "bM"
+        },
+        {
+            "id": "A10",
+            "n": 999,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "qh"
+        },
+        {
+            "id": "A11",
+            "n": 1000,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "qi"
+        },
+        {
+            "id": "A12",
+            "n": 12345,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "dnh"
+        },
+        {
+            "id": "A13",
+            "n": 1000000,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "emjc"
+        },
+        {
+            "id": "A14",
+            "n": 100000000,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "gVKJo"
+        },
+        {
+            "id": "A15",
+            "n": 2000000000,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "clvXwG"
+        },
+        {
+            "id": "A16",
+            "n": 2147483647,
+            "salt": "",
+            "padding": 3,
+            "expected_code": "cvuMLb"
+        },
+        {
+            "id": "B1",
+            "n": 1,
+            "salt": "testsalt",
+            "padding": 3,
+            "expected_code": "br1"
+        },
+        {
+            "id": "B2",
+            "n": 10,
+            "salt": "testsalt",
+            "padding": 3,
+            "expected_code": "dk6"
+        },
+        {
+            "id": "B3",
+            "n": 100,
+            "salt": "testsalt",
+            "padding": 3,
+            "expected_code": "cp9c"
+        },
+        {
+            "id": "B4",
+            "n": 1000,
+            "salt": "testsalt",
+            "padding": 3,
+            "expected_code": "rm1k"
+        },
+        {
+            "id": "B5",
+            "n": 10000,
+            "salt": "testsalt",
+            "padding": 3,
+            "expected_code": "e1TeS"
+        }
+    ]
+}

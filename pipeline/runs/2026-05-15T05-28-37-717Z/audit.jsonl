@@ -1,0 +1,3 @@
+{"ts":"2026-05-15T05:28:37.724Z","event":"engagement_created","shape":"crud","run_id":"2026-05-15T05-28-37-717Z","source_dir":"migrations/crud/source"}
+{"ts":"2026-05-15T05:28:52.099Z","event":"stage_start","stage":"1-extract","model":"claude-sonnet-4-6"}
+{"ts":"2026-05-15T05:28:52.418Z","event":"stage_fallback","stage":"1-extract","reason":"simulated via POST /simulate/fallback"}

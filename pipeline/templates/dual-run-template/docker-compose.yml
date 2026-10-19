@@ -1,0 +1,117 @@
+# Dual-run parity + visual harness for MWU-CRUD-001.
+# 5 services on a private docker network, all 127.0.0.1-bound (or unpublished).
+
+services:
+  # ── Legacy side ────────────────────────────────────────────────────────────
+  mysql-legacy:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: demo_dev_only
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/00-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pdemo_dev_only"]
+      interval: 3s
+      timeout: 2s
+      retries: 30
+
+  php-legacy:
+    build:
+      context: ..
+      dockerfile: dual-run/Dockerfile.php
+    depends_on:
+      mysql-legacy:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:21080:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null -w '%{http_code}' http://localhost/ | grep -q '^[2-4]'"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  # ── New side ───────────────────────────────────────────────────────────────
+  pg-new:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: crud
+      POSTGRES_PASSWORD: demo_dev_only
+      POSTGRES_DB: crud
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crud -d crud"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  fastapi-new:
+    build:
+      context: ../generated/backend
+      dockerfile: Dockerfile
+    environment:
+      # Settings: env_prefix="CRUD_" + populate_by_name → CRUD_<FIELD>.
+      CRUD_DATABASE_URL: "postgresql+asyncpg://crud:demo_dev_only@pg-new:5432/crud"
+      CRUD_LOG_LEVEL: "INFO"
+      # pydantic-settings JSON-decodes complex env-var values before the
+      # @field_validator runs, so we hand it a JSON array directly.
+      CRUD_CORS_ORIGINS: '["http://localhost:21173","http://react-new"]'
+    depends_on:
+      pg-new:
+        condition: service_healthy
+    volumes:
+      - ./fastapi-entrypoint.sh:/app/entrypoint.sh:ro
+      - ./seed-pg.sql:/app/seed-pg.sql:ro
+    entrypoint: ["/bin/sh", "/app/entrypoint.sh"]
+    ports:
+      - "127.0.0.1:21800:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/healthz', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  react-new:
+    build:
+      context: ../generated/frontend
+      dockerfile: Dockerfile
+    # SPA uses the default VITE_API_BASE=/api which the nginx layer
+    # proxies to fastapi-new:8000 on the private docker network.
+    depends_on:
+      fastapi-new:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:21173:80"
+
+  # ── Runners (on-demand) ────────────────────────────────────────────────────
+  parity-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    depends_on:
+      fastapi-new:
+        condition: service_healthy
+    volumes:
+      - ./parity-runner.py:/app/parity-runner.py:ro
+      - ./fixtures:/app/fixtures:ro
+      - ./reports:/app/reports
+    environment:
+      PYTHON_TARGET_URL: "http://fastapi-new:8000"
+    profiles: ["run"]
+    command: ["python", "/app/parity-runner.py"]
+
+  screenshot-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    depends_on:
+      php-legacy:
+        condition: service_healthy
+      react-new:
+        condition: service_started
+    volumes:
+      - ./screenshot-runner.py:/app/screenshot-runner.py:ro
+      - ../screenshots:/app/screenshots
+    environment:
+      PHP_REFERENCE_URL: "http://php-legacy"
+      REACT_TARGET_URL: "http://react-new"
+    profiles: ["screenshot"]
+    command: ["python", "/app/screenshot-runner.py"]

@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "entity": {
+    "name_singular": "user",
+    "name_plural": "users",
+    "name_pascal": "User"
+  },
+  "table": {
+    "name": "users",
+    "comment": "Application users with name, age, and unique email address"
+  },
+  "fields": [
+    {
+      "name": "id",
+      "type": "int",
+      "required": true,
+      "max_length": null,
+      "min_length": null,
+      "min": 1,
+      "max": null,
+      "unique": true,
+      "primary": true,
+      "auto_increment": true,
+      "nullable": false,
+      "default": null,
+      "py_type": "int",
+      "ts_type": "number"
+    },
+    {
+      "name": "name",
+      "type": "str",
+      "required": true,
+      "max_length": 100,
+      "min_length": 1,
+      "min": null,
+      "max": null,
+      "unique": false,
+      "primary": false,
+      "auto_increment": false,
+      "nullable": false,
+      "default": null,
+      "py_type": "str",
+      "ts_type": "string"
+    },
+    {
+      "name": "age",
+      "type": "int",
+      "required": true,
+      "max_length": null,
+      "min_length": null,
+      "min": 0,
+      "max": 150,
+      "unique": false,
+      "primary": false,
+      "auto_increment": false,
+      "nullable": false,
+      "default": null,
+      "py_type": "int",
+      "ts_type": "number"
+    },
+    {
+      "name": "email",
+      "type": "email",
+      "required": true,
+      "max_length": 100,
+      "min_length": 3,
+      "min": null,
+      "max": null,
+      "unique": true,
+      "primary": false,
+      "auto_increment": false,
+      "nullable": false,
+      "default": null,
+      "py_type": "EmailStr",
+      "ts_type": "string"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "list_users",
+      "method": "GET",
+      "path": "/api/users",
+      "status_success": 200,
+      "status_errors": [],
+      "request_body": null,
+      "response_body": "list[UserRead]",
+      "idempotent": true,
+      "uses_path_id": false,
+      "service_method": "list_users"
+    },
+    {
+      "name": "create_user",
+      "method": "POST",
+      "path": "/api/users",
+      "status_success": 201,
+      "status_errors": [409, 422],
+      "request_body": "UserCreate",
+      "response_body": "UserRead",
+      "idempotent": false,
+      "uses_path_id": false,
+      "service_method": "create_user"
+    },
+    {
+      "name": "read_user",
+      "method": "GET",
+      "path": "/api/users/{id}",
+      "status_success": 200,
+      "status_errors": [404, 422],
+      "request_body": null,
+      "response_body": "UserRead",
+      "idempotent": true,
+      "uses_path_id": true,
+      "service_method": "get_user"
+    },
+    {
+      "name": "update_user",
+      "method": "PUT",
+      "path": "/api/users/{id}",
+      "status_success": 200,
+      "status_errors": [404, 409, 422],
+      "request_body": "UserUpdate",
+      "response_body": "UserRead",
+      "idempotent": true,
+      "uses_path_id": true,
+      "service_method": "update_user"
+    },
+    {
+      "name": "delete_user",
+      "method": "DELETE",
+      "path": "/api/users/{id}",
+      "status_success": 204,
+      "status_errors": [404, 422],
+      "request_body": null,
+      "response_body": null,
+      "idempotent": true,
+      "uses_path_id": true,
+      "service_method": "delete_user"
+    }
+  ],
+  "acceptance_criteria": [
+    "AC-1  GET /api/users returns all rows ordered by id DESC (newest-first), matching legacy index.php:6.",
+    "AC-2  POST /api/users with missing or empty name returns 422 (legacy addAction.php:18-20 echoed 'Name field is empty').",
+    "AC-3  POST /api/users with missing or empty age returns 422 (legacy addAction.php:23-25).",
+    "AC-4  POST /api/users with missing or empty email returns 422 (legacy addAction.php:27-29).",
+    "AC-5  name must be 1..100 characters; out-of-range payloads return 422 (DB column varchar(100) NOT NULL).",
+    "AC-6  age must be an integer in the range 0..150; non-integer or out-of-range payloads return 422.",
+    "AC-7  email must be RFC-valid and <=100 characters; invalid format returns 422.",
+    "AC-8  POST /api/users with an email already present in the table returns 409 Conflict (new UNIQUE constraint not enforced by legacy).",
+    "AC-9  PUT /api/users/{id} that sends back the SAME email already stored on row {id} returns 200, NOT 409 (self-collision must be allowed; non-obvious requirement).",
+    "AC-10 PUT /api/users/{id} where {id} does not exist returns 404 (legacy editAction.php silently updated zero rows).",
+    "AC-11 DELETE /api/users/{id} where {id} does not exist returns 404 (legacy delete.php silently deleted zero rows then redirected).",
+    "AC-12 Path parameter {id} must coerce to a positive integer; non-integer values (e.g. 'abc') return 422 before reaching the DB.",
+    "AC-13 Destructive deletes are exposed ONLY via the HTTP DELETE verb; GET /api/users/{id} is a safe read-one and never mutates state (legacy used GET /delete.php?id=N - the new contract MUST NOT).",
+    "AC-14 POST returns 201 with the full created entity including the server-assigned id; PUT returns 200 with the updated entity; DELETE returns 204 with no body."
+  ],
+  "risk_flags": [
+    {
+      "id": "RF-001",
+      "file": "edit.php",
+      "line": 9,
+      "class": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "snippet": "$result = mysqli_query($mysqli, \"SELECT * FROM users WHERE id = $id\");",
+      "auto_resolved_by": "FastAPI Path(..., gt=0) coerces id to int; non-int returns 422 before any SQL runs. SQLAlchemy uses parameter binding."
+    },
+    {
+      "id": "RF-002",
+      "file": "delete.php",
+      "line": 9,
+      "class": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "snippet": "$result = mysqli_query($mysqli, \"DELETE FROM users WHERE id = $id\");",
+      "auto_resolved_by": "FastAPI Path(..., gt=0) coerces id to int; SQLAlchemy ORM delete uses bound parameters."
+    },
+    {
+      "id": "RF-003",
+      "file": "editAction.php",
+      "line": 27,
+      "class": "SQL_INJECTION",
+      "severity": "HIGH",
+      "snippet": "mysqli_query($mysqli, \"UPDATE users SET ... WHERE `id` = $id\");",
+      "auto_resolved_by": "id arrives as a path int; SQLAlchemy parameter binding eliminates interpolation."
+    },
+    {
+      "id": "RF-004",
+      "file": "edit.php",
+      "line": 33,
+      "class": "XSS",
+      "severity": "HIGH",
+      "snippet": "<input type=\"text\" name=\"name\" value=\"<?php echo $name; ?>\">",
+      "auto_resolved_by": "React/Next renders user data via JSX text nodes which auto-escape; the new SPA never builds HTML by string concatenation."
+    },
+    {
+      "id": "RF-005",
+      "file": "edit.php",
+      "line": 44,
+      "class": "XSS",
+      "severity": "HIGH",
+      "snippet": "<input type=\"hidden\" name=\"id\" value=<?php echo $id; ?>>",
+      "auto_resolved_by": "Unquoted attribute removed by SPA rewrite; id is carried in URL path, not a hidden form input."
+    },
+    {
+      "id": "RF-006",
+      "file": "index.php",
+      "line": 30,
+      "class": "XSS",
+      "severity": "MEDIUM",
+      "snippet": "echo \"<td>\".$res['name'].\"</td>\";",
+      "auto_resolved_by": "React JSX auto-escapes interpolated values in the new list view."
+    },
+    {
+      "id": "RF-007",
+      "file": "addAction.php",
+      "line": 37,
+      "class": "CSRF",
+      "severity": "MEDIUM",
+      "snippet": "if (isset($_POST['submit'])) { ... INSERT INTO users ... }",
+      "auto_resolved_by": "FastAPI accepts only JSON bodies on POST/PUT; no session cookies are issued, so CSRF is structurally absent. CORS allowlist enforced at boundary."
+    },
+    {
+      "id": "RF-008",
+      "file": "delete.php",
+      "line": 9,
+      "class": "UNSAFE_HTTP_VERB",
+      "severity": "HIGH",
+      "snippet": "// delete.php triggered via GET /delete.php?id=$_GET['id']",
+      "auto_resolved_by": "New contract exposes delete only on HTTP DELETE; GET /api/users/{id} is a pure read. AC-13 enforces this."
+    }
+  ],
+  "seed_rows": [
+    { "id": 1, "name": "Alice Anderson", "age": 34, "email": "alice@example.com" },
+    { "id": 2, "name": "Bob Baker",      "age": 28, "email": "bob@example.com" },
+    { "id": 3, "name": "Carol Chen",     "age": 45, "email": "carol@example.com" },
+    { "id": 4, "name": "David Davis",    "age": 52, "email": "david@example.com" },
+    { "id": 5, "name": "Eve Edwards",    "age": 31, "email": "eve@example.com" }
+  ],
+  "legacy": {
+    "source_dir": "migrations/crud/source",
+    "files": [
+      "index.php",
+      "add.php",
+      "addAction.php",
+      "edit.php",
+      "editAction.php",
+      "delete.php",
+      "dbConnection.php",
+      "database.sql"
+    ],
+    "loc": 222,
+    "framework": "none",
+    "db_layer": "mysqli procedural"
+  }
+}

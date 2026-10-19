@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total": 14,
+    "pass": 14,
+    "fail": 0,
+    "target": "http://fastapi-new:8000"
+  },
+  "outcomes": [
+    {
+      "id": "LIST-1",
+      "description": "GET list \u2014 both sides return 5 seeded users newest-first",
+      "status": 200,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "GET-1",
+      "description": "GET single user by id=1 (Alice)",
+      "status": 200,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "GET-42",
+      "description": "GET id=42 (does not exist) \u2014 404",
+      "status": 404,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-OK",
+      "description": "POST create \u2014 valid payload",
+      "status": 201,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-DUP",
+      "description": "POST duplicate email \u2014 409 conflict (UNIQUE(email))",
+      "status": 409,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-BAD-EMAIL",
+      "description": "POST invalid email format \u2014 400/422",
+      "status": 422,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-AGE-LOW",
+      "description": "POST age below range (-5) \u2014 400/422",
+      "status": 422,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-AGE-HIGH",
+      "description": "POST age above range (200) \u2014 400/422",
+      "status": 422,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "CREATE-EMPTY-NAME",
+      "description": "POST empty name \u2014 400/422",
+      "status": 422,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "UPDATE-OK",
+      "description": "PUT update name on existing user",
+      "status": 200,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "UPDATE-404",
+      "description": "PUT update non-existent user \u2014 404",
+      "status": 404,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "DELETE-OK",
+      "description": "DELETE existing user (id=5, Eve)",
+      "status": 204,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "DELETE-404",
+      "description": "DELETE non-existent user \u2014 404",
+      "status": 404,
+      "verdict": "PASS",
+      "notes": []
+    },
+    {
+      "id": "LIST-AFTER",
+      "description": "GET list after DELETE-OK \u2014 4 users remain (Eve gone)",
+      "status": 200,
+      "verdict": "PASS",
+      "notes": []
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+Metadata-Version: 2.4
+Name: crud-users
+Version: 0.1.0
+Summary: MWU-CRUD-001 — FastAPI rewrite of chapagain/crud-php-simple (PostgreSQL + async).
+License: MIT
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi==0.110.0
+Requires-Dist: uvicorn[standard]==0.27.0
+Requires-Dist: sqlalchemy[asyncio]==2.0.27
+Requires-Dist: asyncpg==0.29.0
+Requires-Dist: aiosqlite==0.19.0
+Requires-Dist: pydantic==2.6.0
+Requires-Dist: pydantic[email]==2.6.0
+Requires-Dist: pydantic-settings==2.1.0
+Requires-Dist: alembic==1.13.1
+Provides-Extra: test
+Requires-Dist: pytest<9,>=8.0; extra == "test"
+Requires-Dist: pytest-asyncio<1,>=0.24; extra == "test"
+Requires-Dist: httpx==0.26.0; extra == "test"
+Requires-Dist: testcontainers[postgresql]==3.7.1; extra == "test"
+Provides-Extra: dev
+Requires-Dist: ruff==0.2.0; extra == "dev"
+
+# CRUD Users — Python rewrite
+
+FastAPI 0.110 + SQLAlchemy 2.x async + PostgreSQL 16 rewrite of the
+[chapagain/crud-php-simple](https://github.com/chapagain/crud-php-simple)
+educational PHP CRUD over a 4-column `users` table.
+
+This is the **MWU-CRUD-001 Stage 4 (CodeGen)** output of the
+modernisation pipeline. Treat all files as machine-generated against
+the contract in `migrations/crud/output/planning/planning-001.md`.
+
+## Run locally (Docker)
+
+```bash
+docker compose up --build
+# API on http://localhost:8000
+# DB  on localhost:5432 (user crud / pw crud / db crud)
+```
+
+## API surface
+
+| Method | Path                  | Purpose                  |
+|--------|-----------------------|--------------------------|
+| GET    | /api/users            | List users (id DESC)     |
+| POST   | /api/users            | Create user              |
+| GET    | /api/users/{id}       | Read one user            |
+| PUT    | /api/users/{id}       | Update user              |
+| DELETE | /api/users/{id}       | Delete user (204)        |
+| GET    | /api/healthz          | Liveness probe           |
+| GET    | /api/docs             | Swagger UI               |
+
+Error envelope: RFC 9457 `application/problem+json` for all 4xx/5xx.
+
+## Run tests
+
+```bash
+pip install -e '.[test]'
+pytest                  # unit + integration (SQLite in-memory)
+pytest -m requires_pg   # Postgres-backed parity (testcontainers)
+```
+
+## File layout
+
+```
+app/
+  core/         config, logging
+  db/           async engine, declarative base, alembic migrations
+  modules/users/ models, schemas, errors, service, dependencies, router
+  main.py       app factory + lifespan + exception handlers
+tests/
+  unit/         test_schemas, test_service
+  integration/  end-to-end router tests
+  regression/   security regressions (RF-001..008 — see Comprehension §7)
+```
+
+## BR-C coverage
+
+11 consolidated business rules mapped 1:1 to backend tests; see
+`planning-001.md §11.3` for the matrix. Self-Review (Stage 5) verifies
+every BR-C cell. TestGen (Stage 6) enriches the smoke tests below to
+the full Planning §11.2 table.
+
+## Phase 5 handoff items
+
+- `pip install -e '.[test]'` then run pytest against `postgres:16` in
+  Docker for parity verification.
+- Dual-run harness lives at `migrations/crud/dual-run/` and is wired by
+  Stage 7.
+- Email case-folding is **not** auto-applied in MVP (Comprehension
+  §3 BR-C-11 edge cases). `citext` migration recorded as
+  hardening backlog.

@@ -1,0 +1,3152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panasa Modernisation Cockpit — FrontAccounting ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e0c;
+    --bg-2: #0f1513;
+    --bg-3: #141b18;
+    --bg-4: #1a2320;
+    --panel: #11181590;
+    --line: #1f2a25;
+    --line-2: #2a3a33;
+    --line-3: #3a4a43;
+    --ink: #e8efe9;
+    --ink-2: #a8b5ad;
+    --ink-3: #6e7e74;
+    --ink-4: #4a5a51;
+    --green: #063622;
+    --green-2: #0b5a3a;
+    --green-glow: #15c277;
+    --green-soft: rgba(21, 194, 119, 0.12);
+    --green-line: rgba(21, 194, 119, 0.3);
+    --mint: #ddf8e7;
+    --peach: #f5b5a0;
+    --peach-2: #ff9276;
+    --peach-soft: rgba(245, 181, 160, 0.12);
+    --peach-line: rgba(245, 181, 160, 0.35);
+    --amber: #f5c97a;
+    --red: #ff6b5e;
+    --purple: #c084fc;
+    --blue: #5dd0ff;
+    --code-bg: #0c1411;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 800px 400px at 20% 0%, rgba(11, 90, 58, 0.08), transparent 60%),
+      radial-gradient(ellipse 600px 300px at 100% 100%, rgba(245, 181, 160, 0.04), transparent 60%);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .serif { font-family: 'Instrument Serif', serif; font-style: italic; }
+
+  /* ============ APP SHELL ============ */
+  .app {
+    display: grid;
+    grid-template-rows: 56px 36px 1fr 96px 48px;
+    height: 100vh;
+    min-height: 700px;
+  }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    gap: 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 13px;
+  }
+  .brand-dot {
+    width: 8px; height: 8px;
+    background: var(--green-glow);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--green-glow);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .brand .slash { color: var(--ink-3); font-weight: 400; }
+
+  .target {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    height: 56px;
+    margin-left: 14px;
+  }
+  .target-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .target-name { font-weight: 600; font-size: 13px; }
+  .target-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .target-flow .from { color: var(--peach); }
+  .target-flow .arrow { color: var(--ink-3); }
+  .target-flow .to { color: var(--green-glow); }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    padding-left: 4px;
+    margin-left: auto;
+  }
+  .timeline-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .timeline-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .timeline-value .em { color: var(--green-glow); font-weight: 600; }
+  .timeline-value .dim { color: var(--ink-3); }
+  .timeline-value .strike { color: var(--peach); text-decoration: line-through; opacity: 0.7; }
+
+  .session {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 18px;
+    border-left: 1px solid var(--line);
+    height: 56px;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .session .id { font-family: 'JetBrains Mono', monospace; color: var(--ink-2); }
+  .session .live-dot { color: var(--green-glow); font-size: 8px; }
+
+  /* ============ SUB NAV ============ */
+  .subnav {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--line);
+    gap: 4px;
+  }
+  .nav-item {
+    padding: 0 14px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-3);
+    cursor: default;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-weight: 500;
+  }
+  .nav-item.active {
+    color: var(--green-glow);
+    border-bottom-color: var(--green-glow);
+  }
+  .nav-item:not(.active):hover { color: var(--ink-2); }
+  .nav-spacer { flex: 1; }
+  .nav-stats {
+    display: flex;
+    gap: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .nav-stat { letter-spacing: 0.08em; }
+  .nav-stat .num { color: var(--ink); font-weight: 600; margin-left: 4px; }
+  .nav-stat .num.peach { color: var(--peach); }
+
+  /* ============ MAIN GRID ============ */
+  .main {
+    display: grid;
+    grid-template-columns: 250px 1fr 330px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ============ PIPELINE RAIL ============ */
+  .rail {
+    background: var(--bg-2);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+  .rail-title {
+    padding: 0 20px 14px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rail-title .count {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-2);
+    letter-spacing: 0;
+  }
+  .stages { position: relative; }
+  .stages::before {
+    content: '';
+    position: absolute;
+    left: 33px;
+    top: 22px;
+    bottom: 22px;
+    width: 1px;
+    background: var(--line);
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    padding: 9px 20px;
+    position: relative;
+    transition: background 0.2s ease;
+  }
+  .stage:hover { background: rgba(255,255,255,0.015); }
+  .stage-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s ease;
+  }
+  .stage-body { padding-top: 2px; }
+  .stage-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    letter-spacing: -0.005em;
+    transition: color 0.3s ease;
+    line-height: 1.25;
+  }
+  .stage-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 11.5px;
+    color: var(--ink-4);
+    margin-top: 1px;
+    line-height: 1.3;
+  }
+  .stage-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-3);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  .stage.done .stage-num {
+    background: var(--green-2);
+    border-color: var(--green-2);
+    color: var(--mint);
+  }
+  .stage.done .stage-num::after {
+    content: '✓';
+    font-size: 12px;
+  }
+  .stage.done .stage-num .num-text { display: none; }
+  .stage.done .stage-name { color: var(--ink); }
+  .stage.done .stage-sub { color: var(--ink-3); }
+  .stage.done .stage-meta { color: var(--green-glow); }
+  .stage.active .stage-num {
+    background: var(--bg);
+    border-color: var(--green-glow);
+    color: var(--green-glow);
+    box-shadow: 0 0 0 4px rgba(21, 194, 119, 0.12);
+  }
+  .stage.active .stage-name { color: var(--ink); font-weight: 600; }
+  .stage.active .stage-sub { color: var(--ink-2); }
+  .stage.active .stage-meta { color: var(--green-glow); }
+  .stage.checkpoint .stage-num {
+    background: var(--bg);
+    border-color: var(--peach);
+    color: var(--peach);
+    box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.18);
+    animation: checkpoint-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes checkpoint-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(245, 181, 160, 0.15); }
+    50% { box-shadow: 0 0 0 8px rgba(245, 181, 160, 0.25); }
+  }
+  .stage.checkpoint .stage-name { color: var(--peach); font-weight: 600; }
+  .stage.checkpoint .stage-sub { color: var(--peach); }
+  .stage.checkpoint .stage-meta { color: var(--peach); }
+
+  /* ============ CANVAS ============ */
+  .canvas {
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+  }
+  .canvas-header {
+    padding: 18px 28px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .canvas-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .canvas-title .accent { color: var(--green-glow); }
+  .canvas-title.peach .accent { color: var(--peach); }
+  .canvas-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .canvas-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 28px;
+  }
+
+  /* ============ AGENT BLOCK ============ */
+  .agent-block {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .agent-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .agent-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    border: 1px solid var(--green-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green-glow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .agent-icon.peach { background: var(--peach-soft); border-color: var(--peach); color: var(--peach); }
+  .agent-name { font-size: 13px; font-weight: 600; }
+  .agent-name .label { color: var(--ink-3); font-weight: 400; font-size: 11px; margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
+  .agent-status {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .agent-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .agent-status.done { color: var(--ink-3); }
+  .agent-status.done .dot { background: var(--ink-3); animation: none; box-shadow: none; }
+
+  .todo-list { display: flex; flex-direction: column; gap: 4px; }
+  .todo-item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .todo-check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: transparent;
+    background: transparent;
+  }
+  .todo-item.done .todo-check {
+    background: var(--green-glow);
+    border-color: var(--green-glow);
+    color: var(--bg);
+  }
+  .todo-item.done .todo-check::after { content: '✓'; }
+  .todo-text { font-size: 12px; color: var(--ink-2); }
+  .todo-item.done .todo-text { color: var(--ink); }
+  .todo-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  @keyframes line-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ METRICS ============ */
+  .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .panel-row.triple { grid-template-columns: repeat(3, 1fr); }
+  .panel-row.quad { grid-template-columns: repeat(4, 1fr); }
+  .metric {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 13px 15px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .metric-value.green { color: var(--green-glow); }
+  .metric-value.peach { color: var(--peach); }
+  .metric-value.amber { color: var(--amber); }
+  .metric-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title .hint {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-4);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  /* ============ RELATIONSHIP DIAGRAM ============ */
+  .relgraph {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    min-height: 480px;
+  }
+  .relgraph svg {
+    width: 100%;
+    height: 480px;
+    display: block;
+  }
+  .relgraph-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    display: flex;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .relgraph-legend .lg { display: flex; align-items: center; gap: 6px; }
+  .relgraph-legend .sw { width: 8px; height: 8px; border-radius: 2px; }
+
+  .rg-node { cursor: pointer; transition: filter 0.2s ease; }
+  .rg-node:hover { filter: brightness(1.3); }
+  .rg-node.selected rect { stroke: var(--green-glow); stroke-width: 2; }
+  .rg-node rect { transition: all 0.2s ease; }
+  .rg-node-label {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-node-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .rg-edge { stroke: var(--line-3); stroke-width: 1; fill: none; transition: stroke 0.2s ease; }
+  .rg-edge.highlight { stroke: var(--green-glow); stroke-width: 1.5; }
+  .rg-edge-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    fill: var(--ink-4);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  /* Inspector panel for selected node */
+  .inspector {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .inspector-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .inspector-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .inspector-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    background: var(--green-soft);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid var(--green-line);
+  }
+  .inspector-desc {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-2);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .inspector-section { margin-top: 12px; }
+  .inspector-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .evidence-list { display: flex; flex-direction: column; gap: 6px; }
+  .evidence-item {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .evidence-icon {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .evidence-icon.cbl { background: rgba(192,132,252,0.15); color: var(--purple); }
+  .evidence-icon.cpy { background: rgba(245,181,160,0.15); color: var(--peach); }
+  .evidence-icon.sql { background: rgba(245,201,122,0.15); color: var(--amber); }
+  .evidence-icon.jcl { background: rgba(93,208,255,0.15); color: var(--blue); }
+  .evidence-icon.doc { background: rgba(21,194,119,0.15); color: var(--green-glow); }
+  .evidence-path { color: var(--ink-2); }
+  .evidence-path .lines { color: var(--green-glow); }
+  .evidence-snippet { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+
+  .inspector-props {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .inspector-prop { display: flex; flex-direction: column; gap: 2px; }
+  .inspector-prop .k {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+  .inspector-prop .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  /* ============ DIFF / CODEGEN ============ */
+  .diff-panel {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .diff-header {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  .diff-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diff-tab.before { border-right: 1px solid var(--line); color: var(--peach); }
+  .diff-tab.after { color: var(--green-glow); }
+  .diff-tab .label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .diff-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-height: 360px;
+  }
+  .diff-side {
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow: auto;
+  }
+  .diff-side.before { border-right: 1px solid var(--line); }
+  .diff-side .k  { color: #c084fc; }
+  .diff-side .s  { color: #f5c97a; }
+  .diff-side .c  { color: var(--ink-3); font-style: italic; }
+  .diff-side .n  { color: #ff9276; }
+  .diff-side .t  { color: var(--blue); }
+  .diff-side .an { color: var(--amber); }
+  .diff-side .fn { color: var(--blue); }
+
+  .typing-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 13px;
+    background: var(--green-glow);
+    vertical-align: text-bottom;
+    margin-left: 1px;
+    animation: cursor-blink 1s steps(2) infinite;
+  }
+  @keyframes cursor-blink { 50% { opacity: 0; } }
+
+  /* Provenance trail in code-gen */
+  .provenance {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .provenance .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    padding-right: 12px;
+    border-right: 1px solid var(--line);
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .provenance .crumb { color: var(--ink-2); }
+  .provenance .crumb.green { color: var(--green-glow); }
+  .provenance .crumb.peach { color: var(--peach); }
+  .provenance .sep { color: var(--ink-4); }
+
+  /* ============ SELF REVIEW ============ */
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    padding: 9px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+    gap: 12px;
+  }
+  .check-item .icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .check-item.pass .icon { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .check-item.warn .icon { background: rgba(245, 181, 160, 0.15); color: var(--peach); }
+  .check-item .label { font-size: 12px; color: var(--ink); }
+  .check-item.warn .label { color: var(--ink); }
+  .check-item .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .check-item.warn .meta { color: var(--peach); }
+
+  /* Checkpoint card */
+  .checkpoint-card {
+    background: linear-gradient(135deg, rgba(245, 181, 160, 0.10), rgba(245, 181, 160, 0.02));
+    border: 1px solid var(--peach);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .checkpoint-eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--peach);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .checkpoint-title {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .checkpoint-body {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 640px;
+  }
+  .checkpoint-body .em-line {
+    display: block;
+    margin-top: 8px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--peach);
+  }
+  .checkpoint-flags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .flag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--peach);
+    color: var(--peach);
+    border-radius: 100px;
+    background: rgba(245, 181, 160, 0.05);
+  }
+  .checkpoint-reviewer {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(245, 181, 160, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .reviewer-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--peach), var(--peach-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg);
+  }
+  .reviewer-name { font-weight: 600; color: var(--ink); font-size: 12px; }
+  .reviewer-role { color: var(--ink-3); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TEST DOT GRID ============ */
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 3px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .test-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--line);
+    opacity: 0;
+    animation: cell-in 0.05s forwards;
+  }
+  .test-cell.pass { background: var(--green-glow); }
+  .test-cell.flake { background: var(--amber); }
+  .test-cell.fail { background: var(--red); }
+  @keyframes cell-in { to { opacity: 1; } }
+
+  /* ============ TERMINAL ============ */
+  .terminal {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  .terminal-line { color: var(--ink-2); white-space: pre-wrap; opacity: 0; animation: line-in 0.4s forwards; }
+  .terminal-line .ts { color: var(--ink-3); }
+  .terminal-line .ok { color: var(--green-glow); }
+  .terminal-line .warn { color: var(--amber); }
+  .terminal-line .err { color: var(--red); }
+  .terminal-line .arrow { color: var(--ink-3); }
+  .terminal-line .file { color: var(--peach); }
+
+  /* ============ PR CARDS ============ */
+  .pr-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .pr-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green-glow);
+    font-weight: 600;
+  }
+  .pr-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .pr-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+  .pr-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: rgba(21, 194, 119, 0.1);
+    color: var(--green-glow);
+    border-radius: 100px;
+    border: 1px solid var(--green-line);
+    white-space: nowrap;
+  }
+
+  /* ============ PLAN TREE ============ */
+  .plan-tree { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; }
+  .plan-phase {
+    display: grid;
+    grid-template-columns: 32px 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    opacity: 0;
+    animation: line-in 0.4s forwards;
+  }
+  .plan-phase:nth-child(odd) { background: rgba(255,255,255,0.015); }
+  .plan-phase .bullet { color: var(--green-glow); font-weight: 600; }
+  .plan-phase .desc { color: var(--ink); }
+  .plan-phase .risk {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Inter Tight', sans-serif;
+    font-weight: 600;
+  }
+  .plan-phase .risk.high { background: rgba(255,107,94,0.1); color: var(--red); }
+  .plan-phase .risk.med  { background: rgba(245,201,122,0.1); color: var(--amber); }
+  .plan-phase .risk.low  { background: rgba(21,194,119,0.1); color: var(--green-glow); }
+  .plan-phase .dur { color: var(--ink-3); font-size: 11px; }
+
+  /* Architecture diagram for planning */
+  .arch-canvas {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 22px;
+    margin-bottom: 16px;
+    min-height: 200px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .arch-box {
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 130px;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: box-pop 0.4s ease forwards;
+  }
+  @keyframes box-pop { to { opacity: 1; transform: scale(1); } }
+  .arch-box .ttl { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .arch-box .tag {
+    font-size: 9px;
+    color: var(--ink-3);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .arch-box.svc { border-color: var(--green-glow); box-shadow: 0 0 14px rgba(21, 194, 119, 0.18); }
+  .arch-box.svc .tag { color: var(--green-glow); }
+  .arch-arrow { color: var(--ink-4); font-size: 14px; opacity: 0; animation: line-in 0.3s 0.6s forwards; }
+  .arch-gap { height: 18px; }
+
+  /* Discovery file tree */
+  .discovery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 16px;
+  }
+  .file-tree {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    min-height: 220px;
+  }
+  .file-tree-head {
+    color: var(--ink-3);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .tree-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    color: var(--ink-2);
+    opacity: 0;
+    animation: line-in 0.3s forwards;
+  }
+  .tree-line.folder { color: var(--ink); }
+  .tree-line.file   { color: var(--ink-2); padding-left: 16px; }
+  .tree-line .ic    { color: var(--green-glow); }
+  .tree-line .meta  { margin-left: auto; color: var(--ink-4); font-size: 10px; }
+
+  .complexity-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 10px;
+    background: var(--bg-3);
+  }
+  .complexity-bar > div { transition: width 0.8s ease; }
+  .complexity-bar .high { background: var(--red); }
+  .complexity-bar .med  { background: var(--amber); }
+  .complexity-bar .low  { background: var(--green-glow); }
+  .complexity-legend {
+    display: flex;
+    gap: 14px;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .complexity-legend .swatch {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* ============ EMPTY / IDLE PROMPTS ============ */
+  .idle-prompt {
+    padding: 60px 24px 24px;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .idle-prompt .arrow {
+    display: inline-block;
+    margin: 0 4px;
+    color: var(--green-glow);
+    font-family: 'Inter Tight', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .idle-prompt-sub {
+    margin-top: 12px;
+    font-family: 'Inter Tight', sans-serif;
+    font-style: normal;
+    font-size: 12px;
+    color: var(--ink-4);
+  }
+
+  /* ============ RIGHT COLUMN ============ */
+  .right-col {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    border-left: 1px solid var(--line);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .gov-panel {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .gov-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .gov-title .live {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green-glow);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .gov-title .live .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .gov-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+  }
+  .gov-row:last-child { border-bottom: none; }
+  .gov-row .l { color: var(--ink-3); }
+  .gov-row .v { color: var(--ink); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .gov-row .v.green { color: var(--green-glow); }
+  .gov-row .v.peach { color: var(--peach); }
+  .gov-row .v.amber { color: var(--amber); }
+
+  .risk-section { margin-top: 12px; }
+  .risk-section-title {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 2px;
+  }
+  .risk-cell {
+    aspect-ratio: 1;
+    border-radius: 1px;
+    background: var(--bg-3);
+    transition: background 0.4s;
+  }
+  .risk-cell.green { background: var(--green-glow); opacity: 0.55; }
+  .risk-cell.active {
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  /* ============ ARTEFACTS SIDEBAR ============ */
+  .artefacts {
+    padding: 14px 18px 18px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .art-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .art-count { color: var(--green-glow); font-family: 'JetBrains Mono', monospace; }
+
+  .art-tabs {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 12px;
+    background: var(--bg-3);
+  }
+  .art-tab {
+    flex: 1;
+    padding: 5px 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+  .art-tab.active {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 0 0 1px var(--line-2);
+  }
+  .art-tab .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-3);
+    margin-left: 4px;
+  }
+
+  .art-list { display: flex; flex-direction: column; gap: 6px; }
+  .art-item {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 11px;
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: center;
+    opacity: 0;
+    animation: art-in 0.5s forwards;
+    cursor: default;
+    transition: all 0.15s ease;
+  }
+  .art-item:hover { border-color: var(--line-3); background: var(--bg-4); }
+  @keyframes art-in {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .art-icon {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .art-icon.pdf { background: rgba(245, 181, 160, 0.15); color: var(--peach); }
+  .art-icon.md { background: rgba(21, 194, 119, 0.15); color: var(--green-glow); }
+  .art-icon.json { background: rgba(245, 201, 122, 0.15); color: var(--amber); }
+  .art-icon.code { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+  .art-icon.html { background: rgba(93, 208, 255, 0.15); color: var(--blue); }
+  .art-name { font-size: 12px; font-weight: 500; color: var(--ink); }
+  .art-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+  .art-evidence-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--green-glow);
+    margin-top: 3px;
+  }
+  .art-evidence-count::before { content: '◆'; font-size: 8px; }
+  .art-empty {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--ink-4);
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* ============ ACTIVITY LOG ============ */
+  .log {
+    background: #07090e;
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .log-head {
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+  .log-head .title {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .log-head .title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-glow);
+    box-shadow: 0 0 6px var(--green-glow);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .log-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 24px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    min-height: 0;
+  }
+  .log-row {
+    display: grid;
+    grid-template-columns: 56px 128px 1fr;
+    gap: 12px;
+    color: var(--ink-2);
+    opacity: 0;
+    animation: row-in 0.25s forwards;
+  }
+  @keyframes row-in {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .log-row .ts { color: var(--ink-4); }
+  .log-row .src { color: var(--green-glow); }
+  .log-row .src.discovery     { color: var(--green-glow); }
+  .log-row .src.comprehension { color: var(--blue); }
+  .log-row .src.planning      { color: var(--purple); }
+  .log-row .src.codegen       { color: var(--green-glow); }
+  .log-row .src.review        { color: var(--peach); }
+  .log-row .src.testing       { color: var(--amber); }
+  .log-row .src.integration   { color: var(--green-glow); }
+  .log-row .src.system        { color: var(--ink-3); }
+  .log-row .msg { color: var(--ink); }
+  .log-row.success .msg { color: var(--green-glow); }
+  .log-row.warn    .msg { color: var(--peach); }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .progress-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.12em;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 100px;
+    overflow: hidden;
+    max-width: 320px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-2), var(--green-glow));
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 8px var(--green-glow);
+    width: 0%;
+  }
+  .progress-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    min-width: 70px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter Tight', sans-serif;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary {
+    background: var(--green-glow);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #1ed889; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-primary.peach { background: var(--peach); }
+  .btn-primary.peach:hover { background: var(--peach-2); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--line-2);
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
+  .btn-kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 3px;
+    opacity: 0.75;
+    line-height: 1;
+  }
+  .btn-primary .btn-kbd { background: rgba(0,0,0,0.18); }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Panasa</span>
+      <span class="slash">/ Modernisation Cockpit</span>
+    </div>
+    <div class="target">
+      <div>
+        <div class="target-label">Engagement</div>
+        <div class="target-name">FrontAccounting v2.4.19 · ERP Modernisation</div>
+      </div>
+      <div class="target-flow">
+        <span class="from">PHP 5.6 / MySQL Monolith</span>
+        <span class="arrow">──▶</span>
+        <span class="to">FastAPI · React · PostgreSQL 16</span>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-label">Programme</div>
+      <div class="timeline-value">
+        <span id="day-counter" class="em">Day 21</span>
+        <span class="dim"> / 28 est. ·</span>
+        <span class="strike">manual: 180d</span>
+      </div>
+    </div>
+    <div class="session">
+      <span>Session</span>
+      <span class="id">PNS-FA-001</span>
+      <span class="live-dot">●</span>
+      <span>Live</span>
+    </div>
+  </header>
+
+  <!-- SUB NAV -->
+  <nav class="subnav">
+    <div class="nav-item active">Pipeline</div>
+    <div class="nav-item">Relationships</div>
+    <div class="nav-item">Artefacts</div>
+    <div class="nav-item">Agents</div>
+    <div class="nav-item">Evidence</div>
+    <div class="nav-item">Audit</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-stats">
+      <span class="nav-stat">AGENTS<span class="num"><span id="navAgentsActive">0</span> / 7</span></span>
+      <span class="nav-stat">NODES<span class="num" id="navNodes">0</span></span>
+      <span class="nav-stat">EDGES<span class="num" id="navEdges">0</span></span>
+      <span class="nav-stat">EVIDENCE<span class="num" id="navEvidence">0</span></span>
+      <span class="nav-stat">ARTEFACTS<span class="num peach" id="navArtefacts">0</span></span>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- LEFT RAIL -->
+    <aside class="rail">
+      <div class="rail-title"><span>Pipeline</span><span class="count" id="railCount">0 / 7</span></div>
+      <div class="stages" id="stages"></div>
+    </aside>
+
+    <!-- CANVAS -->
+    <section class="canvas">
+      <header class="canvas-header">
+        <h1 class="canvas-title" id="canvasTitle"></h1>
+        <span class="canvas-sub" id="canvasSub"></span>
+      </header>
+      <div class="canvas-body" id="canvasBody"></div>
+    </section>
+
+    <!-- RIGHT COLUMN -->
+    <aside class="right-col">
+      <section class="gov-panel">
+        <div class="gov-title"><span>Governance</span><span class="live"><span class="dot"></span>live</span></div>
+        <div class="gov-row"><span class="l">MWUs complete</span><span class="v" id="gov-modules">0 / 14</span></div>
+        <div class="gov-row"><span class="l">Test coverage</span><span class="v" id="gov-coverage">—</span></div>
+        <div class="gov-row"><span class="l">Parity tests</span><span class="v" id="gov-parity">—</span></div>
+        <div class="gov-row"><span class="l">Human approvals</span><span class="v" id="gov-approvals">0 pending</span></div>
+        <div class="gov-row"><span class="l">Audit entries</span><span class="v" id="gov-audit">0</span></div>
+        <div class="risk-section">
+          <div class="risk-section-title">Module risk · 14 MWUs</div>
+          <div class="risk-grid" id="risk-grid"></div>
+        </div>
+      </section>
+
+      <section class="artefacts">
+        <div class="art-title"><span>Artefacts</span><span class="art-count" id="artCount">0</span></div>
+        <div class="art-tabs">
+          <div class="art-tab active" data-tab="all">All <span class="count" id="tabCountAll">0</span></div>
+          <div class="art-tab" data-tab="code">Code <span class="count" id="tabCountCode">0</span></div>
+          <div class="art-tab" data-tab="docs">Docs <span class="count" id="tabCountDocs">0</span></div>
+        </div>
+        <div class="art-list" id="artList">
+          <div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <section class="log">
+    <div class="log-head">
+      <span class="title"><span class="dot"></span>Activity Log · Real-time</span>
+      <span class="log-stats" id="log-stats">0 events</span>
+    </div>
+    <div class="log-body" id="log-body"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="progress-wrap">
+      <span class="progress-label">PROGRESS</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">Stage 1 / 7</span>
+    </div>
+    <button class="btn btn-ghost" id="resetBtn">
+      <span>Reset</span>
+      <span class="btn-kbd">R</span>
+    </button>
+    <button class="btn btn-primary" id="advanceBtn">
+      <span id="advanceLabel">Run Discovery</span>
+      <span class="btn-kbd">→</span>
+    </button>
+  </footer>
+
+</div>
+
+<script>
+/* =====================================================================
+   PANASA MODERNISATION COCKPIT — single-file demo
+   Click-to-advance · PHP → FastAPI migration of dimensions/ (MWU-FA-001)
+   ===================================================================== */
+
+const $ = id => document.getElementById(id);
+
+/* =====================================================================
+   RELATIONSHIP GRAPH DATA — heart of the Comprehension stage
+   ===================================================================== */
+const GRAPH = {
+  nodes: [
+    { id: 'project',  label: 'FA Modernisation POC',   type: 'project',         x: 480, y: 30,  color: '#5dd0ff' },
+    { id: 'system',   label: 'FrontAccounting ERP',    type: 'system',          x: 480, y: 105, color: '#5dd0ff' },
+    { id: 'software', label: 'PHP/MySQL Monolith',     type: 'software',        x: 130, y: 195, color: '#c084fc' },
+    { id: 'jcl',      label: 'dimensions/ MWU',        type: 'module',          x: 480, y: 195, color: '#5dd0ff' },
+    { id: 'program',  label: 'dimension_entry.php',    type: 'php_form',        x: 830, y: 195, color: '#15c277' },
+    { id: 'copybook', label: 'dimensions_db.inc',      type: 'data_access',     x: 320, y: 285, color: '#c084fc' },
+    { id: 'paragraph',label: 'add_dimension()',        type: 'php_function',    x: 640, y: 285, color: '#15c277' },
+    { id: 'process',  label: 'get_dimension_balance',  type: 'pg_risk_fn',      x: 160, y: 365, color: '#f5c97a' },
+    { id: 'table',    label: '0_dimensions',           type: 'mysql_table',     x: 480, y: 365, color: '#f5c97a' },
+    { id: 'sproc',    label: '0_gl_trans (read)',      type: 'cross_module',    x: 800, y: 365, color: '#15c277' },
+    { id: 'feature',  label: 'Cost Centre Mgmt',       type: 'feature',         x: 130, y: 445, color: '#f5b5a0' },
+    { id: 'story',    label: 'Track Project Costs',    type: 'user_story',      x: 320, y: 445, color: '#f5b5a0' },
+    { id: 'rule',     label: 'TYPE-EXCEPTION',         type: 'migration_rule',  x: 640, y: 445, color: '#f5b5a0' },
+  ],
+  edges: [
+    { from: 'project',  to: 'system',    label: 'modernises' },
+    { from: 'system',   to: 'software',  label: 'runs_on' },
+    { from: 'system',   to: 'jcl',       label: 'contains' },
+    { from: 'jcl',      to: 'program',   label: 'exposes' },
+    { from: 'program',  to: 'copybook',  label: 'includes' },
+    { from: 'copybook', to: 'paragraph', label: 'defines' },
+    { from: 'paragraph',to: 'sproc',     label: 'reads' },
+    { from: 'paragraph',to: 'table',     label: 'writes' },
+    { from: 'process',  to: 'table',     label: 'aggregates' },
+    { from: 'process',  to: 'sproc',     label: 'joins' },
+    { from: 'software', to: 'feature',   label: 'implements' },
+    { from: 'feature',  to: 'story',     label: 'satisfies' },
+    { from: 'feature',  to: 'process',   label: 'realised_by' },
+    { from: 'rule',     to: 'paragraph', label: 'enforced_by' },
+    { from: 'rule',     to: 'table',     label: 'constrains' },
+  ]
+};
+
+const EVIDENCE = {
+  paragraph: {
+    title: 'add_dimension()',
+    type: 'PHP Function',
+    desc: 'Inserts a new cost-centre row, attaches the memo via add_comments(), persists the reference number through global $Refs. Wrapped in a transaction. The entry point of the cost-centre lifecycle.',
+    props: [
+      ['Visibility', 'module-internal'],
+      ['Calls', 'db_query · add_comments · $Refs->save'],
+      ['Side effects', 'DB write + reference register'],
+      ['JWT-redesign', 'global $Refs → Depends()'],
+    ],
+    evidence: [
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc', lines: 'L7–21',  snippet: 'function add_dimension($reference, $name, $type_, ...)' },
+      { type: 'php', path: 'dimensions/dimension_entry.php',         lines: 'L82–104',snippet: 'if ($Mode == \'ADD_ITEM\') { add_dimension(...) }' },
+      { type: 'sql', path: 'sql/en_US-new.sql',                      lines: 'L589–602',snippet: 'CREATE TABLE 0_dimensions' },
+      { type: 'doc', path: 'output/mkb/dimensions/track-a/discovery-001.md', lines: '§ 3', snippet: 'Business Rules — lifecycle & guards' },
+    ]
+  },
+  rule: {
+    title: 'TYPE-EXCEPTION: type_ discriminator',
+    type: 'Migration Rule',
+    desc: '0_dimensions.type_ is declared TINYINT(1) but used as a category code, not a boolean. Naive mapping to BOOLEAN would collapse all categories. Must map to SMALLINT in PostgreSQL and preserve valid values.',
+    props: [
+      ['MySQL type', 'TINYINT(1) DEFAULT 1'],
+      ['PG target', 'SMALLINT NOT NULL'],
+      ['Severity', 'MED — silent data loss'],
+      ['Detected by', 'Discovery Agent'],
+    ],
+    evidence: [
+      { type: 'sql', path: 'sql/en_US-new.sql',                            lines: 'L592',   snippet: '`type_` tinyint(1) NOT NULL DEFAULT \'1\'' },
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc',        lines: 'L9',     snippet: 'function add_dimension(...$type_...)' },
+      { type: 'doc', path: 'CLAUDE.md',                                    lines: '§ 7',    snippet: 'Map to SMALLINT not BOOLEAN — type discriminator' },
+    ]
+  },
+  table: {
+    title: '0_dimensions',
+    type: 'MySQL → PG Table',
+    desc: 'Cost-centre master table. 7 columns, 4 indexes. Contains the TINYINT(1) discriminator and 0000-00-00 date defaults that need migration rules.',
+    props: [
+      ['Columns', '7'],
+      ['PK', 'id (AUTO_INCREMENT)'],
+      ['Indexes', '4 (reference, date_, due_date, type_)'],
+      ['PG target', 'fa_company_{N}.dimensions'],
+    ],
+    evidence: [
+      { type: 'sql', path: 'sql/en_US-new.sql',                            lines: 'L589–602', snippet: 'CREATE TABLE 0_dimensions (id, reference, name, type_...)' },
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc',        lines: 'L11–14',   snippet: 'INSERT INTO 0_dimensions (reference, name, ...)' },
+      { type: 'doc', path: 'output/mkb/dimensions/track-a/discovery-001.md', lines: '§ 2.2', snippet: 'PostgreSQL target schema — type mapping' },
+    ]
+  },
+  feature: {
+    title: 'Cost Centre Management',
+    type: 'Feature',
+    desc: 'Lets accountants define and manage cost centres (projects, departments, contracts) used to tag general-ledger transactions for cost analysis and reporting.',
+    props: [
+      ['Status', 'In FA since v2.0'],
+      ['Module', 'dimensions/'],
+      ['User stories', '4'],
+      ['Business rules', '6'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'doc/2.4_release_notes.txt',                       lines: 'full',   snippet: 'Dimensions module — project cost tracking' },
+      { type: 'php', path: 'dimensions/dimension_entry.php',                  lines: 'L1–299', snippet: 'Cost-centre create/edit form' },
+      { type: 'doc', path: 'output/mkb/dimensions/ui-inventory.md',           lines: 'full',   snippet: 'UI inventory — dimensions/' },
+    ]
+  },
+  story: {
+    title: 'Track Project Costs',
+    type: 'User Story',
+    desc: 'As an accountant, I want to tag each GL entry with a project or department cost centre so management can see profitability and variance by initiative.',
+    props: [
+      ['Status', 'Migrated → FastAPI'],
+      ['Acceptance', '6 criteria'],
+      ['MWU', 'MWU-FA-001'],
+      ['Gate 4', 'PASSED 2026-03-30'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'output/mkb/dimensions/comparison.md',           lines: 'full',    snippet: 'Track A vs Track B reconciliation' },
+      { type: 'doc', path: 'output/workflow/MWU-FA-001.json',                lines: 'full',    snippet: 'state: FULLY_VALIDATED' },
+    ]
+  },
+  process: {
+    title: 'get_dimension_balance_all',
+    type: 'PG-Risk Function',
+    desc: 'Aggregates GL transactions per cost-centre account. Joins 0_gl_trans with 0_chart_master. PG-STRICT-MODE: SELECTs account_name but only GROUPs BY account — will fail under PostgreSQL strict mode without a fix.',
+    props: [
+      ['Risk flag', 'PG-STRICT-MODE'],
+      ['Severity', 'HIGH — runtime SQL error'],
+      ['Called from', 'inquiry/search_dimensions.php'],
+      ['Fix', 'add account_name to GROUP BY'],
+    ],
+    evidence: [
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc',        lines: 'L171–187', snippet: 'SELECT account, coa.account_name, sum(amount) ... GROUP BY account' },
+      { type: 'doc', path: 'CLAUDE.md',                                     lines: '§ 7',     snippet: 'PG-STRICT-MODE: implicit column in GROUP BY' },
+    ]
+  },
+  program: {
+    title: 'dimension_entry.php',
+    type: 'PHP Form Handler',
+    desc: 'Create/edit form for cost centres. Handles GET (display), POST (submit), and AJAX updates. Includes dimensions_ui.inc for shared form widgets.',
+    props: [
+      ['Lines', '299'],
+      ['Form handlers', '8 (Add/Update/Delete/Close/Reopen…)'],
+      ['Direct echo hits', '2 (FA-direct-output flag)'],
+      ['Globals used', '$Refs · $path_to_root'],
+    ],
+    evidence: [
+      { type: 'php', path: 'dimensions/dimension_entry.php',                 lines: 'L1–299',  snippet: 'page entry: $page_security, form widgets, submit handlers' },
+      { type: 'php', path: 'dimensions/includes/dimensions_ui.inc',          lines: 'L1–63',   snippet: 'function dimension_settings() — shared form chrome' },
+    ]
+  },
+  copybook: {
+    title: 'dimensions_db.inc',
+    type: 'Data Access Layer',
+    desc: 'CRUD + balance functions for cost centres. 226 lines, 14 functions, zero $_SESSION usage. The cleanest data layer in FrontAccounting — and the reason this MWU is the ideal pilot.',
+    props: [
+      ['Lines', '226'],
+      ['Functions', '14'],
+      ['$_SESSION refs', '0 (clean)'],
+      ['Raw SQL concat hits', '0 (uses db_escape)'],
+    ],
+    evidence: [
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc',          lines: 'L1–226',  snippet: 'add/update/delete/get/close/reopen/balance' },
+      { type: 'doc', path: 'output/mkb/dimensions/track-b/semgrep-summary.md', lines: 'full', snippet: 'Track B: 3 findings, 0 session, 0 raw-sql, 0 float' },
+    ]
+  },
+  sproc: {
+    title: '0_gl_trans (cross-module read)',
+    type: 'External Table',
+    desc: 'GL journal entries. The dimensions module reads this for balance calculations and delete-guard checks but never writes. Establishes a read-only dependency on the GL module — important for migration sequencing.',
+    props: [
+      ['Relationship', 'read-only'],
+      ['Blocks', 'dimension delete if posted'],
+      ['Owner module', 'MWU-FA-003 (gl/)'],
+      ['Sequence note', 'gl/ migrated first OR shadow-read'],
+    ],
+    evidence: [
+      { type: 'php', path: 'dimensions/includes/dimensions_db.inc',          lines: 'L80–92',  snippet: 'function dimension_has_payments — SELECT COUNT(*) FROM 0_gl_trans' },
+      { type: 'doc', path: 'output/mkb/gl/track-a/discovery-001.md',          lines: 'full',   snippet: 'GL module discovery' },
+    ]
+  },
+  jcl: {
+    title: 'dimensions/ (Cost Centres)',
+    type: 'Migration Work Unit',
+    desc: 'MWU-FA-001 — cost-centre CRUD. Five files, 750 LOC, LOW complexity. Selected as the pilot module precisely because it has zero $_SESSION and zero raw-SQL hits — it isolates the harder discoveries (type discriminator, PG GROUP BY, NULL dates) without the auth complexity.',
+    props: [
+      ['Files', '5'],
+      ['LOC', '750'],
+      ['Complexity', 'LOW (semgrep-confirmed)'],
+      ['State', 'FULLY_VALIDATED — Gate 4 PASSED'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'output/workflow/MWU-FA-001.json',                 lines: 'full',   snippet: '{ "state": "FULLY_VALIDATED", "gate": 4 }' },
+      { type: 'doc', path: 'output/mkb/dimensions/track-a/discovery-001.md',  lines: 'full',   snippet: 'Discovery report — DRAFT classification' },
+    ]
+  },
+  software: {
+    title: 'PHP 5.6 / MySQL Monolith',
+    type: 'Software',
+    desc: 'FrontAccounting v2.4.19 — 133K lines of PHP across 14 top-level modules. No framework, raw $_SESSION auth, MySQL with table-prefix multi-tenancy. The monolith being modernised.',
+    props: [
+      ['LOC', '133,233'],
+      ['PHP files', '318 (72.5K lines)'],
+      ['INC files', '157 (50.5K lines)'],
+      ['Source commit', 'd42ca2c · 2024-09'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'README.md',                                       lines: 'full',   snippet: 'FrontAccounting — open-source double-entry accounting' },
+      { type: 'doc', path: 'CLAUDE.md',                                       lines: '§ 3',    snippet: 'Source Baseline · 133,233 lines · 318 PHP / 157 INC / 11 SQL' },
+    ]
+  },
+  system: {
+    title: 'FrontAccounting ERP',
+    type: 'System',
+    desc: 'Open-source double-entry accounting platform — GL, AR, AP, inventory, sales, purchasing, manufacturing, fixed assets. The system being modernised end-to-end across 14 modules.',
+    props: [
+      ['Top-level modules', '14'],
+      ['Deployment', 'on-prem LAMP'],
+      ['Auth', 'PHP $_SESSION (legacy)'],
+      ['Multi-company', 'MySQL table prefix (0_)'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'doc/2.4_release_notes.txt',                       lines: 'full',   snippet: 'FrontAccounting v2.4.19 release notes' },
+      { type: 'doc', path: 'output/mkb/auth/architecture-001.md',             lines: 'full',   snippet: 'JWT redesign — replaces $_SESSION' },
+    ]
+  },
+  project: {
+    title: 'FrontAccounting Modernisation POC',
+    type: 'Project',
+    desc: 'AI-driven migration of FrontAccounting ERP from PHP 5.6 / MySQL to FastAPI / React / PostgreSQL 16. POC covers 5 MWUs end-to-end across discovery, planning, codegen, and validation — 4 gates, all passed.',
+    props: [
+      ['Duration', '21 days actual · 180d manual baseline'],
+      ['Gates', '4 / 4 PASSED'],
+      ['MWUs', '5 / 5 FULLY_VALIDATED'],
+      ['Status', 'POC COMPLETE — Phase 5 next'],
+    ],
+    evidence: [
+      { type: 'doc', path: 'CLAUDE.md',                                       lines: '§ 1, 4', snippet: 'Project Identity & MWU Registry' },
+      { type: 'doc', path: 'output/workflow/progress.md',                     lines: 'full',   snippet: 'Gate 4 PASSED 2026-03-30 — Renjith R.' },
+    ]
+  },
+};
+
+/* =====================================================================
+   PHP + PYTHON SAMPLES (for code-gen stage)
+   Real source: dimensions/includes/dimensions_db.inc — add_dimension()
+   Real target: services/dimensions.py — DimensionService.add()
+   ===================================================================== */
+const COBOL_SAMPLE = `<?php
+// dimensions/includes/dimensions_db.inc — L7–21
+// add a new cost-centre. Persists the reference and attaches a memo.
+function add_dimension($reference, $name, $type_, $date_, $due_date, $memo_)
+{
+    global $Refs;
+    begin_transaction();
+    $date    = date2sql($date_);
+    $duedate = date2sql($due_date);
+    $sql = "INSERT INTO ".TB_PREF."dimensions
+              (reference, name, type_, date_, due_date)
+            VALUES (".db_escape($reference).",
+                    ".db_escape($name).",
+                    ".db_escape($type_).",
+                    '$date',
+                    '$duedate')";
+    db_query($sql, "could not add dimension");
+    $id = db_insert_id();
+    add_comments(ST_DIMENSION, $id, $date_, $memo_);
+    $Refs->save(ST_DIMENSION, $id, $reference);   // global side-effect
+    commit_transaction();
+    return $id;
+}`;
+
+const JAVA_SAMPLE = `# services/dimensions.py
+# Migrated from dimensions/includes/dimensions_db.inc::add_dimension (L7–21)
+# Behaviour preserved:
+#   - reference uniqueness enforced
+#   - memo attached via comments service
+#   - reference register updated (was: global $Refs)
+# Provenance: each method tagged to its legacy source.
+
+from datetime import date
+from decimal import Decimal
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.deps import get_db, get_user, get_refs
+from app.models.dimensions import Dimension
+from app.schemas.dimensions import DimensionCreate
+from app.services.comments import CommentsService
+from app.services.refs import ReferenceService
+
+class DimensionService:
+    """Cost-centre CRUD. Legacy: dimensions/includes/dimensions_db.inc"""
+
+    def __init__(
+        self,
+        db: AsyncSession = Depends(get_db),
+        refs: ReferenceService = Depends(get_refs),  # was: global $Refs
+        comments: CommentsService = Depends(CommentsService),
+    ):
+        self.db = db
+        self.refs = refs
+        self.comments = comments
+
+    async def add(self, dto: DimensionCreate, user) -> int:
+        async with self.db.begin():                      # was: begin_transaction()
+            dim = Dimension(
+                reference=dto.reference,
+                name=dto.name,
+                type_=dto.type_,                         # SMALLINT — not BOOLEAN
+                date_=dto.date_,                         # NULL-able, not 0000-00-00
+                due_date=dto.due_date,
+            )
+            self.db.add(dim)
+            await self.db.flush()                        # gives dim.id
+            await self.comments.attach(
+                ref_type="ST_DIMENSION",
+                ref_id=dim.id,
+                memo=dto.memo,
+                on=dto.date_,
+            )
+            await self.refs.save("ST_DIMENSION", dim.id, dto.reference)
+            return dim.id`;
+
+// PHP highlighter (legacy column on the codegen split view)
+function highlightCobol(src) {
+  return src
+    .replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="c">$1</span>')
+    .replace(/\b(function|global|return|if|else|new|class|use|namespace)\b/g, '<span class="k">$1</span>')
+    .replace(/\b(begin_transaction|commit_transaction|db_query|db_escape|db_insert_id|add_comments|date2sql|TB_PREF|ST_DIMENSION)\b/g, '<span class="t">$1</span>')
+    .replace(/(\$[A-Za-z_][A-Za-z0-9_]*)/g, '<span class="an">$1</span>')
+    .replace(/"([^"]*)"/g, '<span class="s">"$1"</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="n">$1</span>');
+}
+// Python highlighter (target column on the codegen split view)
+function highlightJava(src) {
+  return src
+    .replace(/(#[^\n]*)/g, '<span class="c">$1</span>')
+    .replace(/(@\w+)/g, '<span class="an">$1</span>')
+    .replace(/\b(import|from|class|def|async|await|return|self|if|else|with|as)\b/g, '<span class="k">$1</span>')
+    .replace(/\b(AsyncSession|Depends|Decimal|Dimension|DimensionCreate|DimensionService|CommentsService|ReferenceService|date)\b/g, '<span class="t">$1</span>')
+    .replace(/"([^"]*)"/g, '<span class="s">"$1"</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="n">$1</span>');
+}
+
+/* =====================================================================
+   PIPELINE STAGES
+   ===================================================================== */
+const STAGES = [
+  {
+    id: 'discovery',
+    name: 'Discovery',
+    sub: 'mapping the territory',
+    runMeta: 'scanning…',
+    doneMeta: '5 files · 750 LOC · MWU-FA-001',
+    runLabel: 'Run Discovery',
+    nextLabel: 'Continue to Comprehension',
+    dwell: 2200,
+    agent: {
+      name: 'Discovery Agent',
+      tech: 'discovery_agent',
+      todos: [
+        { text: 'Connect to source tree (read-only)',          meta: 'attrib +R · 318 PHP files' },
+        { text: 'Index dimensions/ module (Track A — LLM)',    meta: '5 files · 750 LOC' },
+        { text: 'Run static analysis (Track B — semgrep)',     meta: '3 findings · LOW risk' },
+        { text: 'Catalogue MySQL DDL — 0_dimensions',          meta: '7 cols · 4 indexes' },
+        { text: 'Map includes/ dependencies',                  meta: '14 fn refs' },
+        { text: 'Classify migration complexity',               meta: 'LOW · pilot-ready' },
+        { text: 'Produce discovery-001.md',                    meta: 'md · DRAFT class.' },
+      ]
+    },
+    render: renderDiscovery,
+    artefacts: [
+      { type: 'md',   name: 'discovery-001.md',              meta: '7 sections · evidence-linked', evidence: 18, category: 'docs' },
+      { type: 'json', name: 'function-index.json',           meta: '14 functions · cross-ref ready', evidence: 14, category: 'docs' },
+      { type: 'md',   name: 'semgrep-summary.md',            meta: '3 findings · 0 critical', evidence: 3, category: 'docs' },
+    ]
+  },
+  {
+    id: 'comprehension',
+    name: 'Comprehension',
+    sub: 'understanding the why',
+    runMeta: 'analysing…',
+    doneMeta: '13 entities · 15 edges · 6 BRs',
+    runLabel: 'Run Comprehension',
+    nextLabel: 'Continue to Planning',
+    dwell: 3400,
+    agent: {
+      name: 'Comprehension Agent',
+      tech: 'comprehension_agent',
+      todos: [
+        { text: 'Build call graph from PHP function bodies',   meta: '14 functions' },
+        { text: 'Extract domain entities from DDL + db.inc',   meta: '1 aggregate root' },
+        { text: 'Mine business rules from validators + guards', meta: '6 rules' },
+        { text: 'Identify cross-module coupling',              meta: '1 read-dep on gl/' },
+        { text: 'Cross-reference with UI inventory',           meta: '8 form handlers' },
+        { text: 'Detect migration risks (TYPE-EXCEPTION etc.)', meta: '3 flags' },
+        { text: 'Generate relationship graph (click to inspect)', meta: '13 × 15' },
+        { text: 'Attach evidence pointers to every claim',     meta: '18 pointers' },
+      ]
+    },
+    render: renderComprehension,
+    artefacts: [
+      { type: 'md',   name: 'comprehension-001.md',          meta: '13 entities · 6 rules', evidence: 18, category: 'docs' },
+      { type: 'md',   name: 'business-rules.md',             meta: '6 rules · evidence-linked', evidence: 18, category: 'docs' },
+      { type: 'json', name: 'relationship-graph.json',       meta: '13 nodes · 15 edges', evidence: 0, category: 'docs' },
+    ]
+  },
+  {
+    id: 'planning',
+    name: 'Planning',
+    sub: 'the migration sequence',
+    runMeta: 'sequencing…',
+    doneMeta: '4 sub-tasks · 1 PR planned',
+    runLabel: 'Run Planning',
+    nextLabel: 'Continue to Code Generation',
+    dwell: 2600,
+    agent: {
+      name: 'Planner Agent',
+      tech: 'planner_agent',
+      todos: [
+        { text: 'Score MWU by risk × dependency',              meta: 'LOW · isolated' },
+        { text: 'Plan PG schema migration (TINYINT → SMALLINT)', meta: 'reversible' },
+        { text: 'Sequence: schema → service → router → tests', meta: '4 sub-tasks' },
+        { text: 'Identify rollback triggers',                  meta: 'parity gate' },
+        { text: 'Estimate at p80 from prior MWUs',             meta: 'n/a — pilot' },
+        { text: 'Produce planning-001.md',                     meta: 'md · APPROVED' },
+      ]
+    },
+    render: renderPlanning,
+    artefacts: [
+      { type: 'md',   name: 'planning-001.md',               meta: '4 sub-tasks · risk-ordered', evidence: 0, category: 'docs' },
+      { type: 'json', name: 'pr-sequence.json',              meta: '1 PR queued', evidence: 0, category: 'docs' },
+    ]
+  },
+  {
+    id: 'codegen',
+    name: 'Code Generation',
+    sub: 'the rewrite, supervised',
+    runMeta: 'generating…',
+    doneMeta: '12 files · 1,420 LOC · evidence-traced',
+    runLabel: 'Run Code Generation',
+    nextLabel: 'Continue to Self Review',
+    dwell: 5200,
+    agent: {
+      name: 'Code Generation Agent',
+      tech: 'codegen_agent',
+      todos: [
+        { text: 'For each function: locate legacy evidence',   meta: '14 functions' },
+        { text: 'Translate to async SQLAlchemy 2.x',           meta: 'no raw SQL' },
+        { text: 'Apply FastAPI 0.110 idioms',                  meta: 'Depends() · Pydantic v2' },
+        { text: 'Map types (TINYINT(1) → SMALLINT, dates)',    meta: 'TYPE-EXCEPTION honoured' },
+        { text: 'Wire JWT auth scaffolding',                   meta: 'replaces $_SESSION' },
+        { text: 'Tag every method with provenance',            meta: 'L→L mapping' },
+      ]
+    },
+    render: renderCodegen,
+    artefacts: [
+      { type: 'code', name: 'services/dimensions.py',         meta: '+312 / −0', evidence: 14, category: 'code' },
+      { type: 'code', name: 'models/dimension.py',            meta: '+88 / −0',  evidence: 7,  category: 'code' },
+      { type: 'code', name: 'routers/dimensions.py',          meta: '+196 / −0', evidence: 9,  category: 'code' },
+      { type: 'code', name: 'schemas/dimensions.py',          meta: '+74 / −0',  evidence: 4,  category: 'code' },
+    ]
+  },
+  {
+    id: 'review',
+    name: 'Self Review',
+    sub: 'the AI critiques itself',
+    runMeta: 'reviewing…',
+    doneMeta: '15 pass · 3 flagged for HITL',
+    runLabel: 'Run Self Review',
+    nextLabel: 'Continue past checkpoint',
+    isCheckpoint: true,
+    dwell: 2800,
+    agent: {
+      name: 'Self Review Agent',
+      tech: 'review_agent',
+      todos: [
+        { text: 'Static analysis: types, async, transactions', meta: '1,420 LOC' },
+        { text: 'Behaviour parity vs legacy functions',         meta: 'function-by-function' },
+        { text: 'Security review: OWASP top 10 + injection',    meta: '47 checks' },
+        { text: 'Compliance: audit trail + multi-company',      meta: 'PG schema isolation' },
+        { text: 'Flag decisions requiring human judgement',     meta: '3 flagged' },
+        { text: 'Hand off to engineer for checkpoint',          meta: '→ Renjith R.' },
+      ]
+    },
+    render: renderReview,
+    artefacts: [
+      { type: 'md',   name: 'self-review-001.md',             meta: '18 checks · 3 flagged', evidence: 18, category: 'docs' },
+    ]
+  },
+  {
+    id: 'testing',
+    name: 'Testing',
+    sub: 'evidence, not assertion',
+    runMeta: 'running tests…',
+    doneMeta: '52 / 53 passing · 6/6 BRs verified',
+    runLabel: 'Run Testing',
+    nextLabel: 'Continue to Merge',
+    dwell: 4200,
+    agent: {
+      name: 'Test Agent',
+      tech: 'test_agent',
+      todos: [
+        { text: 'Generate unit suite from business rules',     meta: '38 tests' },
+        { text: 'Generate integration suite (SQLite + PG)',    meta: '15 tests' },
+        { text: 'Replay golden fixtures from legacy',          meta: 'parity check' },
+        { text: 'Verify each BR has ≥1 assertion',             meta: '6 / 6 BRs' },
+        { text: 'Measure response equivalence vs PHP FA',      meta: '100% on green path' },
+        { text: 'Quarantine flaky tests (mock setup)',         meta: '1 TEST_DEFECT' },
+      ]
+    },
+    render: renderTesting,
+    artefacts: [
+      { type: 'html', name: 'test-report.html',               meta: '52 / 53 · 6/6 BRs', evidence: 53, category: 'docs' },
+      { type: 'json', name: 'parity-report.json',             meta: 'green-path: 100% match', evidence: 4, category: 'docs' },
+    ]
+  },
+  {
+    id: 'merge',
+    name: 'Merge & Integration',
+    sub: 'Gate 4 — FULLY_VALIDATED',
+    runMeta: 'gating…',
+    doneMeta: 'MWU-FA-001 FULLY_VALIDATED · 0 rollbacks',
+    runLabel: 'Run Gate Review',
+    nextLabel: 'Pipeline Complete',
+    dwell: 2400,
+    agent: {
+      name: 'Integration Agent',
+      tech: 'integration_agent',
+      todos: [
+        { text: 'Bundle artefacts for Gate 4 review',          meta: '12 files · 6 docs' },
+        { text: 'Run final pytest suite (SQLite + ephemeral PG)', meta: 'all green' },
+        { text: 'SAST + dependency audit',                     meta: '0 issues' },
+        { text: 'Present to HITL approver',                    meta: '→ Renjith R.' },
+        { text: 'Write MWU state file FULLY_VALIDATED',        meta: 'append-only audit' },
+        { text: 'Schedule Phase 5 dual-run vs legacy PHP',     meta: 'deferred — pilot only' },
+      ]
+    },
+    render: renderMerge,
+    artefacts: [
+      { type: 'md',   name: 'MWU-FA-001-gate-report.md',      meta: 'Gate 4 PASSED', evidence: 0, category: 'docs' },
+      { type: 'json', name: 'workflow/MWU-FA-001.json',       meta: 'state: FULLY_VALIDATED', evidence: 0, category: 'docs' },
+    ]
+  }
+];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const STATE = {
+  currentIndex: 0,
+  stageState: 'idle',     // 'idle' | 'running' | 'done'
+  artefacts: [],
+  artFilter: 'all',
+  selectedNodeId: 'paragraph',
+  telemetry: { messages: 0, audit: 0, evidence: 0 },
+  hitlClicked: false,
+};
+
+/* =====================================================================
+   ACTIVITY LOG
+   ===================================================================== */
+let logCount = 0;
+const T0 = performance.now();
+function tsNow() {
+  const ms = performance.now() - T0;
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+}
+function log(src, msg, kind = '') {
+  logCount++;
+  const row = document.createElement('div');
+  row.className = 'log-row' + (kind ? ' ' + kind : '');
+  row.innerHTML = `<span class="ts">${tsNow()}</span><span class="src ${src}">[${src.toUpperCase()}]</span><span class="msg">${msg}</span>`;
+  $('log-body').appendChild(row);
+  $('log-body').scrollTop = $('log-body').scrollHeight;
+  $('log-stats').textContent = `${logCount} events`;
+}
+function streamLogs(src, lines, baseDelay = 0, step = 280) {
+  lines.forEach((ln, i) => {
+    setTimeout(() => log(src, ln.msg || ln, ln.kind || ''), baseDelay + i * step);
+  });
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+function init() {
+  initRiskGrid();
+  renderRail();
+  renderCanvas();
+  renderArtefacts();
+  updateFooter();
+  updateNavStats();
+  log('system', 'Cockpit initialised · agent swarm ready');
+  log('system', 'Engagement <strong style="color:var(--ink)">FrontAccounting v2.4.19</strong> loaded · session PNS-FA-001');
+  if (LIVE_MODE) {
+    log('system', '<span style="color:var(--green-glow)">● LIVE MODE</span> · Discovery stage will stream from local proxy (claude-sonnet-4-6)');
+  }
+  $('advanceBtn').addEventListener('click', advance);
+  $('resetBtn').addEventListener('click', reset);
+  document.querySelectorAll('.art-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.art-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      STATE.artFilter = t.dataset.tab;
+      renderArtefacts();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === 'r' || e.key === 'R') reset();
+  });
+}
+
+function initRiskGrid() {
+  const grid = $('risk-grid');
+  grid.innerHTML = '';
+  const cells = 100; // 5 rows × 20 cols
+  for (let i = 0; i < cells; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'risk-cell';
+    if (i < Math.floor(0/14 * cells)) cell.classList.add('green');
+    grid.appendChild(cell);
+  }
+  const activeIdx = Math.floor(0/14 * cells);
+  if (grid.children[activeIdx]) grid.children[activeIdx].classList.add('active');
+}
+
+function reset() {
+  STATE.currentIndex = 0;
+  STATE.stageState = 'idle';
+  STATE.artefacts = [];
+  STATE.selectedNodeId = 'paragraph';
+  STATE.hitlClicked = false;
+  STATE.telemetry = { messages: 0, audit: 0, evidence: 0 };
+  logCount = 0;
+  $('log-body').innerHTML = '';
+  $('log-stats').textContent = '0 events';
+  $('gov-modules').textContent = '0 / 14';
+  $('gov-coverage').textContent = '—';
+  $('gov-coverage').className = 'v';
+  $('gov-parity').textContent = '—';
+  $('gov-parity').className = 'v';
+  $('gov-approvals').textContent = '0 pending';
+  $('gov-approvals').className = 'v';
+  $('gov-audit').textContent = '0';
+  $('day-counter').textContent = 'Day 6.2';
+  initRiskGrid();
+  renderRail();
+  renderCanvas();
+  renderArtefacts();
+  updateFooter();
+  updateNavStats();
+  log('system', 'Cockpit reset · pipeline ready');
+}
+
+// LIVE_MODE: when ?live=true is set AND the proxy is reachable, the Discovery
+// stage runs a real Claude call against ./source/dimensions/ and streams
+// findings back via SSE. Every other stage stays scripted.
+const LIVE_MODE = new URLSearchParams(location.search).get('live') === 'true';
+
+function advance() {
+  const stage = STAGES[STATE.currentIndex];
+  if (STATE.stageState === 'idle') {
+    STATE.stageState = 'running';
+    log(stage.id, `<strong style="color:var(--ink)">${stage.agent.name}</strong> activated · ${stage.agent.todos.length} tasks queued`);
+    renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+
+    if (LIVE_MODE && stage.id === 'discovery') {
+      runLiveDiscovery(stage);
+      return;
+    }
+
+    // scripted path — stream a few log lines from the todos
+    stage.agent.todos.slice(0, 5).forEach((t, i) => {
+      setTimeout(() => log(stage.id, t.text + ' <span style="color:var(--ink-3)">· ' + t.meta + '</span>'), 300 + i * 280);
+    });
+    const dwell = stage.dwell || (1600 + stage.agent.todos.length * 80);
+    setTimeout(() => finishStage(stage), dwell);
+  } else if (STATE.stageState === 'done') {
+    if (STATE.currentIndex < STAGES.length - 1) {
+      STATE.currentIndex++;
+      STATE.stageState = 'idle';
+      renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+    } else {
+      // pipeline complete — final tick
+      finalisePipeline();
+    }
+  }
+}
+
+function finishStage(stage, liveSummary) {
+  STATE.stageState = 'done';
+
+  // doneMeta: real numbers from the live summary if we got one, else the scripted default
+  let doneMeta = stage.doneMeta;
+  if (liveSummary && liveSummary.files_indexed != null) {
+    const flags = (liveSummary.risk_flags || []).length;
+    doneMeta = `${liveSummary.files_indexed} files · ${liveSummary.loc} LOC · `
+             + `${liveSummary.functions} fns · ${liveSummary.business_rules} BRs · `
+             + `${flags} risk flag${flags === 1 ? '' : 's'} · live`;
+  }
+  log(stage.id, `<strong style="color:var(--green-glow)">✓ ${stage.name.toLowerCase()} complete</strong> · ${doneMeta}`, 'success');
+
+  // artefacts: prefer summary-provided list (so the count matches what the model actually emitted)
+  const arts = (liveSummary && Array.isArray(liveSummary.artefacts) && liveSummary.artefacts.length)
+    ? liveSummary.artefacts.map(a => ({
+        type: a.type || 'md',
+        name: a.name,
+        meta: `${a.evidence_pointers || 0} evidence pointers · live`,
+        evidence: a.evidence_pointers || 0,
+        category: a.type === 'code' ? 'code' : 'docs',
+      }))
+    : stage.artefacts;
+  arts.forEach((a, i) => {
+    setTimeout(() => {
+      STATE.artefacts.push(a);
+      STATE.telemetry.evidence += (a.evidence || 0);
+      renderArtefacts(); updateNavStats();
+    }, i * 200);
+  });
+  applyGovernanceForStage(stage.id);
+  renderRail(); renderCanvas(); updateFooter(); updateNavStats();
+}
+
+function runLiveDiscovery(stage) {
+  const url = '/discovery';
+  log(stage.id, `<span style="color:var(--green-glow)">● LIVE</span> · streaming from local proxy → ${url}`);
+
+  let evt;
+  let summary = null;
+  let lineCount = 0;
+  let fallbackArmed = true;
+  let fallbackTimer = null;
+
+  const armFallback = (delay, reason) => {
+    fallbackTimer = setTimeout(() => {
+      if (!fallbackArmed) return;
+      fallbackArmed = false;
+      try { if (evt) evt.close(); } catch (_) {}
+      log(stage.id, `<span style="color:var(--peach)">! live mode timed out</span> — falling back to scripted (${reason})`, 'warn');
+      // scripted continuation
+      stage.agent.todos.slice(0, 5).forEach((t, i) => {
+        setTimeout(() => log(stage.id, t.text + ' <span style="color:var(--ink-3)">· ' + t.meta + '</span>'), i * 250);
+      });
+      setTimeout(() => finishStage(stage), 1800);
+    }, delay);
+  };
+
+  // If we don't get an initial 'start' event within 8s, fall back.
+  armFallback(8000, 'no proxy response');
+
+  try {
+    evt = new EventSource(url);
+  } catch (err) {
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    fallbackArmed = false;
+    log(stage.id, `<span style="color:var(--peach)">! EventSource failed</span> — ${err.message}`, 'warn');
+    setTimeout(() => finishStage(stage), 1200);
+    return;
+  }
+
+  evt.addEventListener('start', (e) => {
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+    armFallback(60000, 'stream stalled'); // longer window once we're talking
+    try {
+      const d = JSON.parse(e.data);
+      log(stage.id, `proxy responding · embedded ${d.files} files · ${d.loc} LOC into prompt`);
+    } catch (_) {}
+  });
+
+  evt.addEventListener('line', (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      lineCount++;
+      log(stage.id, d.text);
+    } catch (_) {}
+  });
+
+  evt.addEventListener('summary', (e) => {
+    try { summary = JSON.parse(e.data); } catch (_) {}
+  });
+
+  evt.addEventListener('warn', (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      log(stage.id, `<span style="color:var(--ink-3)">proxy warn: ${d.msg}</span>`);
+    } catch (_) {}
+  });
+
+  evt.addEventListener('end', () => {
+    if (!fallbackArmed) return; // already fell back
+    fallbackArmed = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    try { evt.close(); } catch (_) {}
+    if (!lineCount) {
+      log(stage.id, `<span style="color:var(--peach)">! no findings emitted</span> — using scripted summary`, 'warn');
+      finishStage(stage);
+    } else {
+      finishStage(stage, summary);
+    }
+  });
+
+  evt.addEventListener('error', (ev) => {
+    // EventSource emits a generic 'error' on disconnect; if readyState is CLOSED
+    // and we've already finished, ignore it.
+    if (evt.readyState === EventSource.CLOSED && !fallbackArmed) return;
+    if (!fallbackArmed) return;
+    fallbackArmed = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    try { evt.close(); } catch (_) {}
+    log(stage.id, `<span style="color:var(--peach)">! SSE error</span> — falling back to scripted`, 'warn');
+    stage.agent.todos.slice(0, 5).forEach((t, i) => {
+      setTimeout(() => log(stage.id, t.text + ' <span style="color:var(--ink-3)">· ' + t.meta + '</span>'), i * 250);
+    });
+    setTimeout(() => finishStage(stage), 1800);
+  });
+}
+
+function applyGovernanceForStage(stageId) {
+  if (stageId === 'comprehension') {
+    STATE.telemetry.audit += 38;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'planning') {
+    STATE.telemetry.audit += 23;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'codegen') {
+    STATE.telemetry.audit += 33;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'review') {
+    $('gov-approvals').textContent = '3 pending';
+    $('gov-approvals').className = 'v peach';
+    STATE.telemetry.audit += 24;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'testing') {
+    $('gov-coverage').textContent = '94.3%';
+    $('gov-coverage').className = 'v green';
+    $('gov-parity').textContent = '10,000 / 10,000';
+    $('gov-parity').className = 'v green';
+    STATE.telemetry.audit += 24;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+  } else if (stageId === 'merge') {
+    $('gov-modules').textContent = '1 / 14';
+    $('gov-modules').className = 'v green';
+    $('gov-approvals').textContent = '0 pending';
+    $('gov-approvals').className = 'v';
+    STATE.telemetry.audit += 25;
+    $('gov-audit').textContent = STATE.telemetry.audit;
+    $('day-counter').textContent = 'Day 6.4';
+    // advance risk grid
+    const grid = $('risk-grid');
+    const active = grid.querySelector('.risk-cell.active');
+    if (active) {
+      active.classList.remove('active');
+      active.classList.add('green');
+      if (active.nextElementSibling) active.nextElementSibling.classList.add('active');
+    }
+  }
+}
+
+function finalisePipeline() {
+  // re-render so button shows complete
+  renderRail(); renderCanvas(); updateFooter();
+  log('system', '<strong style="color:var(--green-glow)">✓ Pipeline complete</strong> · MWU-FA-001 dimensions/ FULLY_VALIDATED · 13 MWUs remaining', 'success');
+}
+
+/* =====================================================================
+   RAIL
+   ===================================================================== */
+function renderRail() {
+  const el = $('stages');
+  el.innerHTML = STAGES.map((s, i) => {
+    let cls = 'stage';
+    let metaTxt = '';
+    if (i < STATE.currentIndex) { cls += ' done'; metaTxt = s.doneMeta; }
+    else if (i === STATE.currentIndex) {
+      if (STATE.stageState === 'running') {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = s.runMeta;
+      } else if (STATE.stageState === 'done') {
+        cls += ' done'; metaTxt = s.doneMeta;
+      } else {
+        cls += s.isCheckpoint ? ' checkpoint' : ' active';
+        metaTxt = 'ready';
+      }
+    }
+    return `
+      <div class="${cls}">
+        <div class="stage-num"><span class="num-text">${String(i + 1).padStart(2, '0')}</span></div>
+        <div class="stage-body">
+          <div class="stage-name">${s.name}</div>
+          <div class="stage-sub">${s.sub}</div>
+          <div class="stage-meta">${metaTxt}</div>
+        </div>
+      </div>`;
+  }).join('');
+  $('railCount').textContent = `${STATE.currentIndex + (STATE.stageState === 'done' ? 1 : 0)} / 7`;
+}
+
+/* =====================================================================
+   FOOTER + NAV STATS
+   ===================================================================== */
+function updateFooter() {
+  const stage = STAGES[STATE.currentIndex];
+  const completed = STATE.currentIndex + (STATE.stageState === 'done' ? 1 : 0);
+  const pct = (completed / STAGES.length) * 100;
+  $('progressFill').style.width = pct + '%';
+  $('progressText').textContent = `Stage ${Math.min(STAGES.length, STATE.currentIndex + 1)} / ${STAGES.length}`;
+
+  const btn = $('advanceBtn');
+  const label = $('advanceLabel');
+  btn.disabled = false;
+  btn.classList.remove('peach');
+
+  if (STATE.stageState === 'idle') {
+    label.textContent = stage.runLabel;
+    if (stage.isCheckpoint) btn.classList.add('peach');
+  } else if (STATE.stageState === 'running') {
+    label.textContent = `Running ${stage.name}…`;
+    btn.disabled = true;
+  } else if (STATE.stageState === 'done') {
+    if (STATE.currentIndex === STAGES.length - 1) {
+      label.textContent = 'Pipeline Complete · Reset';
+      btn.disabled = true;
+    } else {
+      label.textContent = stage.nextLabel;
+      if (stage.isCheckpoint) btn.classList.add('peach');
+    }
+  }
+}
+
+function updateNavStats() {
+  const active = STAGES.reduce((n, _, i) => {
+    if (i < STATE.currentIndex) return n + 1;
+    if (i === STATE.currentIndex && STATE.stageState !== 'idle') return n + 1;
+    return n;
+  }, 0);
+  $('navAgentsActive').textContent = active;
+  $('navNodes').textContent = (STATE.currentIndex >= 1 || (STATE.currentIndex === 1 && STATE.stageState !== 'idle')) ? GRAPH.nodes.length : 0;
+  $('navEdges').textContent = (STATE.currentIndex >= 1 || (STATE.currentIndex === 1 && STATE.stageState !== 'idle')) ? GRAPH.edges.length : 0;
+  $('navEvidence').textContent = STATE.telemetry.evidence;
+  $('navArtefacts').textContent = STATE.artefacts.length;
+}
+
+/* =====================================================================
+   ARTEFACTS LIST
+   ===================================================================== */
+function renderArtefacts() {
+  const list = $('artList');
+  const filtered = STATE.artefacts.filter(a => STATE.artFilter === 'all' || a.category === STATE.artFilter);
+  if (STATE.artefacts.length === 0) {
+    list.innerHTML = '<div class="art-empty">No artefacts yet.<br/>Pipeline output will appear here.</div>';
+  } else if (filtered.length === 0) {
+    list.innerHTML = '<div class="art-empty">No artefacts in this view.</div>';
+  } else {
+    list.innerHTML = filtered.map((a, i) => `
+      <div class="art-item" style="animation-delay:${i * 30}ms">
+        <div class="art-icon ${a.type}">${a.type.toUpperCase()}</div>
+        <div>
+          <div class="art-name">${a.name}</div>
+          <div class="art-meta">${a.meta}</div>
+          ${a.evidence ? `<div class="art-evidence-count">${a.evidence} evidence pointers</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+  $('artCount').textContent = STATE.artefacts.length;
+  $('tabCountAll').textContent = STATE.artefacts.length;
+  $('tabCountCode').textContent = STATE.artefacts.filter(a => a.category === 'code').length;
+  $('tabCountDocs').textContent = STATE.artefacts.filter(a => a.category === 'docs').length;
+}
+
+/* =====================================================================
+   CANVAS HEADER + DISPATCH
+   ===================================================================== */
+function renderCanvas() {
+  const stage = STAGES[STATE.currentIndex];
+  const title = $('canvasTitle');
+  const sub = $('canvasSub');
+  const body = $('canvasBody');
+  const firstWord = stage.name.split(' ')[0];
+  const rest = stage.name.includes(' ') ? ' ' + stage.name.split(' ').slice(1).join(' ') : '';
+  title.innerHTML = `<span class="accent">${firstWord}</span>${rest}`;
+  if (stage.isCheckpoint) title.classList.add('peach'); else title.classList.remove('peach');
+  sub.textContent = stage.sub;
+  body.innerHTML = '';
+  stage.render(body);
+}
+
+/* =====================================================================
+   AGENT BLOCK
+   ===================================================================== */
+function agentBlockHTML(stage) {
+  const isRunning = STATE.stageState === 'running';
+  const isDone = STATE.stageState === 'done';
+  if (!isRunning && !isDone) return '';
+  const isCheckpoint = stage.isCheckpoint;
+  let todosHTML = stage.agent.todos.map((t, i) => `
+    <div class="todo-item done" style="animation-delay: ${i * 110}ms;">
+      <div class="todo-check"></div>
+      <div class="todo-text">${t.text}</div>
+      <div class="todo-meta">${t.meta}</div>
+    </div>`).join('');
+  return `
+    <div class="agent-block">
+      <div class="agent-head">
+        <div class="agent-icon ${isCheckpoint ? 'peach' : ''}">A</div>
+        <div class="agent-name">${stage.agent.name} <span class="label">${stage.agent.tech}</span></div>
+        <div class="agent-status ${isDone ? 'done' : ''}">
+          <span class="dot"></span>
+          ${isDone ? 'completed' : 'running'}
+        </div>
+      </div>
+      <div class="todo-list">${todosHTML}</div>
+    </div>`;
+}
+
+function idlePromptHTML(stage) {
+  return `<div class="idle-prompt">
+    Press <span class="arrow">→</span> to ${stage.runLabel.toLowerCase()}.
+    <div class="idle-prompt-sub">${stage.agent.name} · ${stage.agent.todos.length} tasks queued</div>
+  </div>`;
+}
+
+/* =====================================================================
+   STAGE: DISCOVERY
+   ===================================================================== */
+function renderDiscovery(el) {
+  const stage = STAGES[0];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Files Scanned</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '5' : '—'}</div><div class="metric-delta">dimensions/ — MWU-FA-001</div></div>
+      <div class="metric"><div class="metric-label">Lines of PHP</div><div class="metric-value">${isDone ? '750' : '—'}</div><div class="metric-delta">5 PHP · 2 INC files</div></div>
+      <div class="metric"><div class="metric-label">Risk Findings</div><div class="metric-value ${isDone ? 'amber' : ''}">${isDone ? '3' : '—'}</div><div class="metric-delta">${isDone ? '0 critical · 3 medium' : ''}</div></div>
+    </div>
+
+    <div class="panel-title">Inventory <span class="hint">— what's in dimensions/</span></div>
+    <div class="discovery-grid">
+      <div class="file-tree">
+        <div class="file-tree-head">⊙ scan · dimensions/ (Track A — LLM)</div>
+        <div id="tree-lines"></div>
+      </div>
+      <div>
+        <div class="metric" style="margin-bottom:10px">
+          <div class="metric-label">Migration Complexity (14 MWUs)</div>
+          <div class="complexity-bar">
+            <div class="high" id="cx-high" style="width:0%"></div>
+            <div class="med"  id="cx-med"  style="width:0%"></div>
+            <div class="low"  id="cx-low"  style="width:0%"></div>
+          </div>
+          <div class="complexity-legend">
+            <span><span class="swatch" style="background:var(--red)"></span>2 high (gl · includes)</span>
+            <span><span class="swatch" style="background:var(--amber)"></span>5 medium</span>
+            <span><span class="swatch" style="background:var(--green-glow)"></span>7 low (incl. this)</span>
+          </div>
+        </div>
+        <div class="panel-row">
+          <div class="metric"><div class="metric-label">$_SESSION refs</div><div class="metric-value green">${isDone ? '0' : '—'}</div></div>
+          <div class="metric"><div class="metric-label">Raw-SQL hits</div><div class="metric-value green">${isDone ? '0' : '—'}</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const treeData = [
+    { txt: '📁 source/dimensions/',                  cls: 'folder' },
+    { txt: 'dimension_entry.php',                    cls: 'file',   meta: '299 ln · 8 handlers' },
+    { txt: '📁 includes/',                           cls: 'folder', meta: 'data + UI layer' },
+    { txt: 'dimensions_db.inc',                      cls: 'file',   meta: '226 ln · 14 fns' },
+    { txt: 'dimensions_ui.inc',                      cls: 'file',   meta: '63 ln · 1 fn' },
+    { txt: '📁 inquiry/',                            cls: 'folder', meta: 'search + list' },
+    { txt: 'search_dimensions.php',                  cls: 'file',   meta: '156 ln' },
+    { txt: '📁 view/',                               cls: 'folder', meta: 'read-only display' },
+    { txt: 'view_dimension.php',                     cls: 'file',   meta: '100 ln' },
+  ];
+  const lines = el.querySelector('#tree-lines');
+  treeData.forEach((d, i) => {
+    setTimeout(() => {
+      if (!lines.isConnected) return;
+      const ln = document.createElement('div');
+      ln.className = 'tree-line ' + d.cls;
+      ln.innerHTML = `${d.cls === 'folder' ? '<span class="ic">›</span>' : '<span class="ic">·</span>'} <span>${d.txt}</span> ${d.meta ? `<span class="meta">${d.meta}</span>` : ''}`;
+      lines.appendChild(ln);
+    }, 200 + i * 180);
+  });
+
+  if (isDone) {
+    setTimeout(() => {
+      const h = el.querySelector('#cx-high'); if (h) h.style.width = '14%';
+      const m = el.querySelector('#cx-med');  if (m) m.style.width = '36%';
+      const l = el.querySelector('#cx-low');  if (l) l.style.width = '50%';
+    }, 600);
+  }
+}
+
+/* =====================================================================
+   STAGE: COMPREHENSION (relationship graph + inspector)
+   ===================================================================== */
+function renderComprehension(el) {
+  const stage = STAGES[1];
+  const showData = STATE.stageState !== 'idle';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-title">Relationship Diagram <span class="hint">— extracted from the legacy code · every claim backed by evidence · click a node</span></div>
+    <div class="relgraph" id="relgraph"></div>
+
+    <div class="panel-title">Inspector <span class="hint">— selected node · with evidence trail</span></div>
+    <div class="inspector" id="inspector"></div>
+  `;
+
+  renderGraph();
+  renderInspector();
+}
+
+function renderGraph() {
+  const container = $('relgraph');
+  if (!container) return;
+
+  const W = 960, H = 480;
+  const nodeW = 130, nodeH = 44;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#3a4a43"/>
+      </marker>
+      <marker id="arrgreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#15c277"/>
+      </marker>
+    </defs>`;
+
+  GRAPH.edges.forEach((e, i) => {
+    const from = GRAPH.nodes.find(n => n.id === e.from);
+    const to   = GRAPH.nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    let x1 = from.x, y1 = from.y + nodeH / 2;
+    let x2 = to.x,   y2 = to.y   - nodeH / 2;
+    if (Math.abs(from.y - to.y) < 20) {
+      if (from.x < to.x) { x1 = from.x + nodeW / 2; x2 = to.x - nodeW / 2; }
+      else { x1 = from.x - nodeW / 2; x2 = to.x + nodeW / 2; }
+      y1 = from.y; y2 = to.y;
+    }
+    const isHighlight = (e.from === STATE.selectedNodeId || e.to === STATE.selectedNodeId);
+    const cls = isHighlight ? 'rg-edge highlight' : 'rg-edge';
+    const marker = isHighlight ? 'arrgreen' : 'arr';
+    const midY = (y1 + y2) / 2;
+    svg += `<path d="M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}" class="${cls}" marker-end="url(#${marker})" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 200}ms forwards;"/>`;
+    if (isHighlight) {
+      const mx = (x1 + x2) / 2;
+      const my = midY;
+      svg += `<rect x="${mx - 36}" y="${my - 7}" width="72" height="14" rx="3" fill="#0a0e0c" stroke="#15c277" stroke-opacity="0.4" stroke-width="0.5" style="opacity: 0; animation: line-in 0.6s ${i * 40 + 400}ms forwards;"/>`;
+      svg += `<text x="${mx}" y="${my + 3}" class="rg-edge-label" style="fill: #15c277; opacity: 0; animation: line-in 0.6s ${i * 40 + 500}ms forwards;">${e.label}</text>`;
+    }
+  });
+
+  GRAPH.nodes.forEach((n, i) => {
+    const isSelected = n.id === STATE.selectedNodeId;
+    const fill   = isSelected ? `${n.color}25` : '#141b18';
+    const stroke = isSelected ? n.color : '#2a3a33';
+    const strokeW = isSelected ? 2 : 1;
+    svg += `<g class="rg-node ${isSelected ? 'selected' : ''}" data-id="${n.id}" style="opacity: 0; animation: line-in 0.5s ${i * 60}ms forwards;">
+      <rect x="${n.x - nodeW/2}" y="${n.y - nodeH/2}" width="${nodeW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>
+      <text x="${n.x}" y="${n.y - 3}" class="rg-node-label">${n.label}</text>
+      <text x="${n.x}" y="${n.y + 11}" class="rg-node-type">${n.type}</text>
+    </g>`;
+  });
+
+  svg += '</svg>';
+  svg += `<div class="relgraph-legend">
+    <div class="lg"><div class="sw" style="background:#5dd0ff;"></div>structural</div>
+    <div class="lg"><div class="sw" style="background:#15c277;"></div>behavioural</div>
+    <div class="lg"><div class="sw" style="background:#f5c97a;"></div>data</div>
+    <div class="lg"><div class="sw" style="background:#f5b5a0;"></div>business</div>
+    <div class="lg"><div class="sw" style="background:#c084fc;"></div>technical</div>
+  </div>`;
+
+  container.innerHTML = svg;
+  container.querySelectorAll('.rg-node').forEach(n => {
+    n.addEventListener('click', () => {
+      STATE.selectedNodeId = n.dataset.id;
+      renderGraph();
+      renderInspector();
+      log('comprehension', `Inspecting <strong style="color:var(--ink)">${GRAPH.nodes.find(x => x.id === n.dataset.id).label}</strong> · evidence trail attached`);
+    });
+  });
+}
+
+function renderInspector() {
+  const el = $('inspector');
+  if (!el) return;
+  const ev = EVIDENCE[STATE.selectedNodeId];
+  if (!ev) { el.innerHTML = '<div style="color:var(--ink-3);font-style:italic;">No evidence indexed for this node.</div>'; return; }
+  el.innerHTML = `
+    <div class="inspector-head">
+      <div class="inspector-title">${ev.title}</div>
+      <div class="inspector-type">${ev.type}</div>
+    </div>
+    <div class="inspector-desc">${ev.desc}</div>
+    <div class="inspector-section">
+      <div class="inspector-section-title">Properties</div>
+      <div class="inspector-props">
+        ${ev.props.map(([k, v]) => `<div class="inspector-prop"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="inspector-section">
+      <div class="inspector-section-title">Evidence — extracted from legacy code (${ev.evidence.length} sources)</div>
+      <div class="evidence-list">
+        ${ev.evidence.map(e => `
+          <div class="evidence-item">
+            <div class="evidence-icon ${e.type}">${e.type.toUpperCase()}</div>
+            <div>
+              <div class="evidence-path">${e.path} <span class="lines">${e.lines}</span></div>
+              <div class="evidence-snippet">${e.snippet}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   STAGE: PLANNING
+   ===================================================================== */
+function renderPlanning(el) {
+  const stage = STAGES[2];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Sub-tasks</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '4' : '—'}</div><div class="metric-delta">schema → service → router → tests</div></div>
+      <div class="metric"><div class="metric-label">PRs Planned</div><div class="metric-value">${isDone ? '1' : '—'}</div><div class="metric-delta">~1,420 LOC est.</div></div>
+      <div class="metric"><div class="metric-label">Est. Duration</div><div class="metric-value">${isDone ? '2.5 d' : '—'}</div><div class="metric-delta">p80 · vs 12d manual baseline</div></div>
+    </div>
+
+    <div class="panel-title">Target Architecture <span class="hint">— FastAPI service topology</span></div>
+    <div class="arch-canvas">
+      <div class="arch-row" id="arch-r1"></div>
+      <div class="arch-gap"></div>
+      <div class="arch-row" id="arch-r2"></div>
+    </div>
+
+    <div class="panel-title">Sub-task Sequence <span class="hint">— risk-ordered, reversible</span></div>
+    <div class="plan-tree" id="plan"></div>
+  `;
+
+  const row1 = el.querySelector('#arch-r1');
+  const boxes1 = [
+    { ttl: 'React 18 (TS)', tag: 'shadcn/ui · Vite', cls: '' },
+    { ttl: 'FastAPI Router', tag: '@router · Depends()', cls: 'svc' },
+    { ttl: 'DimensionService', tag: 'SQLAlchemy 2.x async', cls: '' },
+  ];
+  boxes1.forEach((b, i) => setTimeout(() => {
+    if (!row1.isConnected) return;
+    const div = document.createElement('div');
+    div.className = 'arch-box ' + b.cls;
+    div.style.animationDelay = '0s';
+    div.innerHTML = `<div class="ttl">${b.ttl}</div><div class="tag">${b.tag}</div>`;
+    row1.appendChild(div);
+    if (i < boxes1.length - 1) {
+      const a = document.createElement('span');
+      a.className = 'arch-arrow';
+      a.textContent = '→';
+      row1.appendChild(a);
+    }
+  }, 200 + i * 300));
+
+  const row2 = el.querySelector('#arch-r2');
+  const boxes2 = [
+    { ttl: 'PostgreSQL 16', tag: 'fa_company_{N} schema', cls: '' },
+    { ttl: 'JWT (FA-Users)', tag: 'replaces $_SESSION', cls: '' },
+    { ttl: 'audit.jsonl', tag: 'append-only · 7-yr retention', cls: '' },
+  ];
+  boxes2.forEach((b, i) => setTimeout(() => {
+    if (!row2.isConnected) return;
+    const div = document.createElement('div');
+    div.className = 'arch-box ' + b.cls;
+    div.innerHTML = `<div class="ttl">${b.ttl}</div><div class="tag">${b.tag}</div>`;
+    row2.appendChild(div);
+  }, 1300 + i * 250));
+
+  const plan = el.querySelector('#plan');
+  const phases = [
+    ['Step 1 — PG schema migration (TINYINT(1) → SMALLINT, NULL dates)',  '4 h',   'low'],
+    ['Step 2 — SQLAlchemy 2.x models + Pydantic schemas',                 '6 h',   'low'],
+    ['Step 3 — DimensionService (async, transactional, Depends())',       '8 h',   'med'],
+    ['Step 4 — FastAPI router + OpenAPI contract',                         '4 h',   'low'],
+    ['Step 5 — Fix get_dimension_balance_all (PG-STRICT-MODE GROUP BY)',  '2 h',   'med'],
+    ['Step 6 — Unit + integration tests (6/6 BRs covered)',                '6 h',   'low'],
+  ];
+  phases.forEach((p, i) => {
+    setTimeout(() => {
+      if (!plan.isConnected) return;
+      const div = document.createElement('div');
+      div.className = 'plan-phase';
+      div.style.animationDelay = '0s';
+      div.innerHTML = `<span class="bullet">▸</span><span class="desc">${p[0]}</span><span class="risk ${p[2]}">${p[2]} risk</span><span class="dur">${p[1]}</span>`;
+      plan.appendChild(div);
+    }, 1800 + i * 130);
+  });
+}
+
+/* =====================================================================
+   STAGE: CODE GENERATION (streaming Java)
+   ===================================================================== */
+function renderCodegen(el) {
+  const stage = STAGES[3];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Files Generated</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '4' : '—'}</div><div class="metric-delta">FastAPI · SQLAlchemy 2.x · Pydantic v2</div></div>
+      <div class="metric"><div class="metric-label">Lines Generated</div><div class="metric-value">${isDone ? '1,420' : '—'}</div><div class="metric-delta">incl. models, schemas, tests</div></div>
+      <div class="metric"><div class="metric-label">Evidence-Traced</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '100%' : '—'}</div><div class="metric-delta">every method ↔ legacy function</div></div>
+    </div>
+
+    <div class="provenance">
+      <span class="label">PROVENANCE</span>
+      <span class="crumb peach">dimensions/includes/dimensions_db.inc · add_dimension · L7–21</span>
+      <span class="sep">→</span>
+      <span class="crumb">CLAUDE.md type rules · TYPE-EXCEPTION</span>
+      <span class="sep">→</span>
+      <span class="crumb green">services/dimensions.py · DimensionService.add · L22–45</span>
+    </div>
+
+    <div class="panel-title">Translation <span class="hint">— PHP function · FastAPI service · streaming live</span></div>
+    <div class="diff-panel">
+      <div class="diff-header">
+        <div class="diff-tab before"><span class="label">↓ LEGACY</span><span>dimensions/includes/dimensions_db.inc</span></div>
+        <div class="diff-tab after"><span class="label">↑ MODERN</span><span>services/dimensions.py</span></div>
+      </div>
+      <div class="diff-body">
+        <div class="diff-side before">${highlightCobol(COBOL_SAMPLE)}</div>
+        <div class="diff-side after" id="java-out"></div>
+      </div>
+    </div>
+  `;
+  streamJava();
+}
+
+function streamJava() {
+  const out = $('java-out');
+  if (!out) return;
+  const fullText = JAVA_SAMPLE;
+  let pos = 0;
+  const chunkSize = 9;
+  function step() {
+    if (!out.isConnected) return;
+    pos = Math.min(fullText.length, pos + chunkSize);
+    const slice = fullText.slice(0, pos);
+    out.innerHTML = highlightJava(slice) + (pos < fullText.length ? '<span class="typing-cursor"></span>' : '');
+    out.scrollTop = out.scrollHeight;
+    if (pos < fullText.length) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* =====================================================================
+   STAGE: SELF REVIEW + CHECKPOINT
+   ===================================================================== */
+function renderReview(el) {
+  const stage = STAGES[4];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    ${isDone ? `
+    <div class="checkpoint-card">
+      <div class="checkpoint-eyebrow">◆ Human Checkpoint Required</div>
+      <div class="checkpoint-title">3 items need an engineer's eye before we proceed.</div>
+      <div class="checkpoint-body">
+        The model translated the code correctly, but flagged three decisions it won't make alone. A Panasa engineer reviews these before the pipeline continues.
+        <span class="em-line">This is the line between AI-assisted and AI-supervised engineering.</span>
+      </div>
+      <div class="checkpoint-flags">
+        <span class="flag">TYPE-EXCEPTION on type_ — confirm SMALLINT mapping preserves all categories</span>
+        <span class="flag">PG-STRICT-MODE in get_dimension_balance_all — fix GROUP BY before merge</span>
+        <span class="flag">Global $Refs replaced by Depends(ReferenceService) — confirm transaction semantics</span>
+      </div>
+      <div class="checkpoint-reviewer">
+        <div class="reviewer-avatar">RR</div>
+        <div>
+          <div class="reviewer-name">Renjith R.</div>
+          <div class="reviewer-role">Principal Engineer, Panasa · assigned · est. 30 min</div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="panel-title">Self-Review Checks <span class="hint">— 18 of 18 · 3 flagged for human review</span></div>
+    <div class="check-list" id="checks"></div>
+  `;
+
+  const items = [
+    ['pass', 'Reference uniqueness enforced (DB constraint + service)', '✓ matches dimensions_db.inc'],
+    ['pass', 'Lifecycle states preserved (open/closed via boolean)',     '✓ no third state introduced'],
+    ['pass', 'Delete blocked when GL transactions exist',                '✓ dimension_has_payments preserved'],
+    ['pass', 'Money fields use Decimal (no float)',                      '✓ 0 float refs · CLAUDE.md §15'],
+    ['pass', 'Async transactions wrap full insert + comments + refs',    '✓ atomicity preserved'],
+    ['warn', 'type_ → SMALLINT vs BOOLEAN (TYPE-EXCEPTION)',              'human review'],
+    ['pass', 'No SQL string concat — SQLAlchemy parameterised',           '✓ 0 hits'],
+    ['pass', 'No $_SESSION refs to migrate (clean module)',               '✓ confirmed'],
+    ['pass', 'Multi-company via PG search_path = fa_company_{N}',         '✓ matches auth design'],
+    ['pass', 'Audit event emitted on every state-changing op',            '✓ 6 / 6'],
+    ['warn', 'PG-STRICT-MODE in get_dimension_balance_all GROUP BY',      'human review'],
+    ['pass', 'NULL-safety — date_ / due_date Optional[date]',             '✓ replaces 0000-00-00'],
+    ['warn', 'Global $Refs → Depends(ReferenceService)',                  'transaction-scope review'],
+    ['pass', 'Error responses follow RFC 9457 ProblemDetail',             '✓ standardised'],
+    ['pass', 'MySQL indexes preserved in PostgreSQL schema',              '✓ 4 / 4'],
+    ['pass', 'OpenAPI contract auto-generated from Pydantic schemas',     '✓ /api/dimensions/*'],
+    ['pass', 'Test coverage ≥ 1 assertion per business rule',             '✓ 6 / 6 BRs'],
+    ['pass', 'Provenance comment on every public method',                 '✓ 14 / 14 fns'],
+  ];
+  const checks = el.querySelector('#checks');
+  items.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = `check-item ${it[0]}`;
+    row.style.animationDelay = `${i * 60}ms`;
+    row.innerHTML = `
+      <div class="icon">${it[0] === 'pass' ? '✓' : '!'}</div>
+      <div class="label">${it[1]}</div>
+      <div class="meta">${it[2]}</div>`;
+    checks.appendChild(row);
+  });
+}
+
+/* =====================================================================
+   STAGE: TESTING
+   ===================================================================== */
+function renderTesting(el) {
+  const stage = STAGES[5];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">Tests Run</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '52 / 53' : '—'}</div><div class="metric-delta">${isDone ? '1 TEST_DEFECT (mock setup)' : ''}</div></div>
+      <div class="metric"><div class="metric-label">BR Coverage</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '6 / 6' : '—'}</div><div class="metric-delta">≥1 assertion per business rule</div></div>
+      <div class="metric"><div class="metric-label">Response Parity</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '100%' : '—'}</div><div class="metric-delta">green-path golden fixtures</div></div>
+    </div>
+
+    <div class="panel-title">Test Run <span class="hint">— 53 tests · 1 quarantined as TEST_DEFECT</span></div>
+    <div class="test-grid" id="testgrid"></div>
+
+    <div class="panel-title">Verification Strategy <span class="hint">— BR-driven, parity-checked</span></div>
+    <div class="terminal" id="term"></div>
+  `;
+
+  const grid = el.querySelector('#testgrid');
+  for (let i = 0; i < 53; i++) {
+    const cell = document.createElement('div');
+    const isFlake = i === 41;
+    cell.className = `test-cell ${isFlake ? 'flake' : 'pass'}`;
+    cell.style.animationDelay = `${i * 18}ms`;
+    grid.appendChild(cell);
+  }
+
+  const term = el.querySelector('#term');
+  const lines = [
+    '<span class="ts">[09:14:02]</span> <span class="ok">▸</span> pytest tests/dimensions/ — 53 tests collected (unit + integration)',
+    '<span class="ts">[09:14:11]</span> <span class="ok">✓</span> Business-rule coverage: <span class="ok">6 / 6</span> · every rule has ≥1 assertion',
+    '<span class="ts">[09:14:18]</span> <span class="ok">▸</span> Golden-fixture replay: 12 PHP outputs ↔ FastAPI outputs',
+    '<span class="ts">[09:14:24]</span> <span class="ok">✓</span> Response parity (green path): <span class="ok">100%</span> · 0 diffs on canonical fixtures',
+    '<span class="ts">[09:14:31]</span> <span class="warn">!</span> Test <span class="file">test_balance_aggregation_pg_strict</span> flaked — mock setup, marked TEST_DEFECT',
+    '<span class="ts">[09:14:36]</span> <span class="ok">✓</span> 52 / 53 pass · 1 quarantined for fix in Phase 5 (Renjith R.)',
+    '<span class="ts">[09:14:39]</span> <span class="ok">✓</span> <span class="ok">Gate 4 conditions met.</span> Ready for HITL review.',
+  ];
+  lines.forEach((l, i) => {
+    setTimeout(() => {
+      if (!term.isConnected) return;
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      line.innerHTML = l;
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    }, 800 + i * 280);
+  });
+}
+
+/* =====================================================================
+   STAGE: MERGE & INTEGRATION
+   ===================================================================== */
+function renderMerge(el) {
+  const stage = STAGES[6];
+  const showData = STATE.stageState !== 'idle';
+  const isDone = STATE.stageState === 'done';
+
+  if (!showData) { el.innerHTML = idlePromptHTML(stage); return; }
+
+  el.innerHTML = `
+    ${agentBlockHTML(stage)}
+
+    <div class="panel-row triple">
+      <div class="metric"><div class="metric-label">PR Merged</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '#001' : '—'}</div><div class="metric-delta">zero rollbacks</div></div>
+      <div class="metric"><div class="metric-label">Gate 4</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? 'PASSED' : '—'}</div><div class="metric-delta">HITL: Renjith R. · 2026-03-30</div></div>
+      <div class="metric"><div class="metric-label">MWU Status</div><div class="metric-value ${isDone ? 'green' : ''}">${isDone ? '1 / 14' : '0 / 14'}</div><div class="metric-delta">${isDone ? 'MWU-FA-001 FULLY_VALIDATED' : ''}</div></div>
+    </div>
+
+    <div class="panel-title">Pull Request <span class="hint">— full audit trail, evidence-linked</span></div>
+    <div id="prs"></div>
+  `;
+
+  const prs = [
+    { n: '#001', t: 'MWU-FA-001 dimensions/ → FastAPI service + Pydantic + tests', meta: '4 files · +1,420 / −0 · 18 / 18 checks · 1 HITL approval', status: 'merged · FULLY_VALIDATED' },
+    { n: '#002', t: 'PG schema: SMALLINT discriminator + NULL date defaults', meta: '2 files · +88 / −0 · 18 / 18 checks · 1 HITL approval', status: 'merged' },
+    { n: '#003', t: 'Fix get_dimension_balance_all GROUP BY (PG-STRICT-MODE)', meta: '1 file · +12 / −4 · 18 / 18 checks · 1 HITL approval', status: 'merged' },
+  ];
+  const prsEl = el.querySelector('#prs');
+  prs.forEach((p, i) => {
+    setTimeout(() => {
+      if (!prsEl.isConnected) return;
+      const card = document.createElement('div');
+      card.className = 'pr-card';
+      card.style.animationDelay = '0s';
+      card.innerHTML = `
+        <div class="pr-num">${p.n}</div>
+        <div>
+          <div class="pr-title">${p.t}</div>
+          <div class="pr-meta">${p.meta}</div>
+        </div>
+        <div class="pr-status">${p.status}</div>`;
+      prsEl.appendChild(card);
+    }, 400 + i * 320);
+  });
+}
+
+/* =====================================================================
+   GO
+   ===================================================================== */
+init();
+
+</script>
+</body>
+</html>

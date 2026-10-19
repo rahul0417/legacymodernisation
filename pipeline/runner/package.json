@@ -1,0 +1,17 @@
+{
+  "name": "pns-pipeline-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live-demo runner: HTTP + SSE + tmux + claude -p orchestrator for the pipeline cockpit.",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

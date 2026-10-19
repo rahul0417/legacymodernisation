@@ -1,0 +1,6 @@
+RewriteEngine On
+# Route /<code> to /index.php?q=<code> when the request isn't a real file/dir.
+# This is the rewrite shorty's README documents.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php?q=$1 [QSA,L]

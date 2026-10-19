@@ -1,0 +1,53 @@
+# docker-compose for local dev + dual-run harness.
+#
+# Services:
+#   db  — PostgreSQL 16
+#   api — Python rewrite (this codebase)
+#   php — legacy reference (optional — only started under `--profile parity`)
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: shorty
+      POSTGRES_PASSWORD: shorty
+      POSTGRES_DB: shorty
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shorty -d shorty"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - shorty_pg_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SHORTY_HOSTNAME: "http://localhost:8000"
+      SHORTY_DB_URL: "postgresql+asyncpg://shorty:shorty@db:5432/shorty"
+      SHORTY_SALT: ""
+      SHORTY_PADDING: "3"
+      SHORTY_LOG_LEVEL: "INFO"
+      SHORTY_TRUSTED_PROXIES: "127.0.0.1"
+    ports:
+      - "8000:8000"
+
+  php:
+    image: php:8.2-apache
+    profiles: ["parity"]
+    environment:
+      SHORTY_HOSTNAME: "http://localhost:8001"
+    ports:
+      - "8001:80"
+    # The legacy reference is mounted by the dual-run harness; this slot
+    # exists so `docker compose --profile parity up` brings it online.
+
+volumes:
+  shorty_pg_data:

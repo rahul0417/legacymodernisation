@@ -1,0 +1,467 @@
+{
+  "summary": {
+    "total": 20,
+    "pass": 14,
+    "fail": 0,
+    "intentional_divergence": 6,
+    "green_path_total": 9,
+    "green_path_pass": 9,
+    "green_path_match": 1.0,
+    "php_reference_url": "http://php-legacy",
+    "python_target_url": "http://fastapi-new:8000"
+  },
+  "outcomes": [
+    {
+      "id": "C-text-1",
+      "description": "format=text \u2014 D3 documented divergence: PHP doesn't set Content-Type (defaults to text/html); FastAPI sets text/plain (RF-10 fix). Body matches.",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwH",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwH",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-text-2",
+      "description": "format=text \u2014 D3 documented divergence (different URL)",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwI",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwI",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-json",
+      "description": "Create new URL via GET, format=json",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_normalised": "{\"url\":\"@HOST@/clvXwJ\"}",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_normalised": "{\"url\":\"@HOST@/clvXwJ\"}",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-xml",
+      "description": "Create new URL via GET, format=xml",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "application/xml",
+        "body_normalised": "<?xml version=\"1.0\"?>\n<response>\n  <url>@HOST@/clvXwK</url>\n</response>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "application/xml",
+        "body_normalised": "<?xml version=\"1.0\"?>\n<response>\n  <url>@HOST@/clvXwK</url>\n</response>",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-html-default",
+      "description": "Create new URL via GET, no format (HTML anchor default)",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<a href=\"@HOST@/clvXwL\">@HOST@/clvXwL</a>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<a href=\"@HOST@/clvXwL\">@HOST@/clvXwL</a>",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-html-explicit",
+      "description": "Create new URL via GET, format=html (same as default)",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<a href=\"@HOST@/clvXwM\">@HOST@/clvXwM</a>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<a href=\"@HOST@/clvXwM\">@HOST@/clvXwM</a>",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-text-uppercase-format",
+      "description": "format=TEXT case-insensitive (D3 text Content-Type divergence)",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwN",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwN",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-ipv4",
+      "description": "IPv4 URL accepted (D3 text Content-Type divergence)",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwO",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwO",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-dedup-first",
+      "description": "First create \u2014 same URL (D3 text Content-Type divergence)",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwP",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwP",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "C-dedup-second",
+      "description": "Second create \u2014 same URL must return same code (BR-C-01; D3 text Content-Type divergence)",
+      "category": "known_divergence",
+      "verdict": "INTENTIONAL_DIVERGENCE",
+      "match": false,
+      "notes": [
+        "documented divergence \u2014 not a defect"
+      ],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwP",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "body_normalised": "@HOST@/clvXwP",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "L-seed-1",
+      "description": "Lookup seeded id=1 (code 'b') \u2192 301 https://example.com/alpha",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 301,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "",
+        "location": "https://example.com/alpha",
+        "error": null
+      },
+      "fast": {
+        "status": 301,
+        "content_type": "",
+        "body_normalised": "",
+        "location": "https://example.com/alpha",
+        "error": null
+      }
+    },
+    {
+      "id": "L-seed-42",
+      "description": "Lookup seeded id=42 (code 'Q') \u2192 301 https://example.com/forty-two",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 301,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "",
+        "location": "https://example.com/forty-two",
+        "error": null
+      },
+      "fast": {
+        "status": 301,
+        "content_type": "",
+        "body_normalised": "",
+        "location": "https://example.com/forty-two",
+        "error": null
+      }
+    },
+    {
+      "id": "L-seed-999",
+      "description": "Lookup seeded id=999 (code 'qh') \u2192 301 https://example.com/nine-nine-nine",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 301,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "",
+        "location": "https://example.com/nine-nine-nine",
+        "error": null
+      },
+      "fast": {
+        "status": 301,
+        "content_type": "",
+        "body_normalised": "",
+        "location": "https://example.com/nine-nine-nine",
+        "error": null
+      }
+    },
+    {
+      "id": "L-seed-12345",
+      "description": "Lookup seeded id=12345 (code 'dnh')",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 301,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "",
+        "location": "https://example.com/twelve-thousand",
+        "error": null
+      },
+      "fast": {
+        "status": 301,
+        "content_type": "",
+        "body_normalised": "",
+        "location": "https://example.com/twelve-thousand",
+        "error": null
+      }
+    },
+    {
+      "id": "L-seed-2billion",
+      "description": "Lookup seeded id=2_000_000_000 (code 'clvXwG')",
+      "category": "green_path",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 301,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "",
+        "location": "https://example.com/two-billion-ceiling",
+        "error": null
+      },
+      "fast": {
+        "status": 301,
+        "content_type": "",
+        "body_normalised": "",
+        "location": "https://example.com/two-billion-ceiling",
+        "error": null
+      }
+    },
+    {
+      "id": "L-unknown",
+      "description": "Lookup unknown code \u2014 RF-09 uplift: mod_php doesn't honour Status header so PHP returns 200; FastAPI returns 404",
+      "category": "error_uplift",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<h1>404 Not Found</h1>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 404,
+        "content_type": "application/json",
+        "body_normalised": "{\"detail\":\"Not Found\",\"type\":\"shorty/not-found\"}",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "L-unknown-2",
+      "description": "Lookup unknown code 'zzzz9' (decodes to a non-seeded id)",
+      "category": "error_uplift",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<h1>404 Not Found</h1>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 404,
+        "content_type": "application/json",
+        "body_normalised": "{\"detail\":\"Not Found\",\"type\":\"shorty/not-found\"}",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "E-bad-url-ftp",
+      "description": "ftp:// scheme rejected by legacy regex \u2014 PHP 200 + Bad input.html, FastAPI 400 + ProblemDetail",
+      "category": "error_uplift",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<h1>Bad input.</h1>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 400,
+        "content_type": "application/json",
+        "body_normalised": "{\"detail\":\"Bad input.\",\"type\":\"shorty/bad-input\"}",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "E-bad-url-uppercase",
+      "description": "HTTP:// (uppercase) rejected \u2014 uplift",
+      "category": "error_uplift",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<h1>Bad input.</h1>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 400,
+        "content_type": "application/json",
+        "body_normalised": "{\"detail\":\"Bad input.\",\"type\":\"shorty/bad-input\"}",
+        "location": null,
+        "error": null
+      }
+    },
+    {
+      "id": "E-empty-request",
+      "description": "GET / with no params \u2014 RF-09 uplift: PHP 200, FastAPI 404",
+      "category": "error_uplift",
+      "verdict": "PASS",
+      "match": true,
+      "notes": [],
+      "php": {
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "body_normalised": "<h1>404 Not Found</h1>",
+        "location": null,
+        "error": null
+      },
+      "fast": {
+        "status": 404,
+        "content_type": "application/json",
+        "body_normalised": "{\"detail\":\"Not Found\",\"type\":\"shorty/not-found\"}",
+        "location": null,
+        "error": null
+      }
+    }
+  ]
+}
